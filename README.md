@@ -23,3 +23,29 @@ For a quick demonstration, consider a well-known example&mdash;Kovalskaya's mise
 - South: J&spades; Q&spades; 7&clubs; 9&clubs; 10&diams; J&diams; Q&diams; K&diams; 7&hearts; J&hearts;
 
 North is playing misere; South is to start (turns alternate clockwise). Can East and South catch it, i.e., force North to take one or more tricks? If so, how many under optimal play by North? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10).
+
+```Our solver will output the following:
+Welcome to Preference solver! Use S, C, D, H for spades, clubs, diamonds, and hearts, respectively.
+Enter cards for hand #1 (format SUIT:KIND) separated by the space key: H:9 H:8 D:9 D:8 D:7 C:8 S:10 S:9 S:8 S:7
+Enter cards for hand #2 (format SUIT:KIND) separated by the space key: S:K S:A C:10 C:J C:Q D:A H:10 H:Q H:K H:A
+Enter cards for hand #3 (format SUIT:KIND) separated by the space key: S:J S:Q C:7 C:9 D:10 D:J D:Q D:K H:7 H:J
+Indicate the game type (P for play or M for misere): M
+Indicate the playing hand (1, 2, or 3): 1
+Indicate the short hand (1, 2, or 3): 3
+Copy that! Wait while the problem is being solved; this may take a few minutes...
+------------------------ BEGIN SOLUTION ------------------------
+[Game: MISERE]. Player 3 to start; major suit -.
+Hand #1 [PLAY] H:9 H:8 D:9 D:8 D:7 C:8 S:10 S:9 S:8 S:7 (1)
+Hand #2 [PASS] H:A H:K H:Q H:10 D:A C:Q C:J C:10 S:A S:K (3)
+Hand #3 [PASS] H:J H:7 D:K D:Q D:J D:10 C:9 C:7 S:Q S:J (6)
+[01] [3 D:10][1 D:7 ][2 D:A ] -> [0, 1, 0]
+[02] [2 H:10][3 H:J ][1 H:8 ] -> [0, 1, 1]
+[03] [3 D:J ][1 D:8 ][2 S:K ] -> [0, 1, 2]
+[04] [3 D:Q ][1 D:9 ][2 S:A ] -> [0, 1, 3]
+[05] [3 D:K ][1 S:7 ][2 H:Q ] -> [0, 1, 4]
+[06] [3 S:J ][1 S:8 ][2 H:K ] -> [0, 1, 5]
+[07] [3 S:Q ][1 S:9 ][2 H:A ] -> [0, 1, 6]
+[08] [3 H:7 ][1 H:9 ][2 C:10] -> [1, 1, 6]
+[09] [1 C:8 ][2 C:J ][3 C:9 ] -> [1, 2, 6]
+[10] [2 C:Q ][3 C:7 ][1 S:10] -> [1, 3, 6]
+Processed 20,236 subgames in 0 minute(s) 0 second(s).```
