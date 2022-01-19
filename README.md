@@ -13,4 +13,4 @@ This program is not a robot-player preconditioned to maximize the returns, nor i
 
 ### The implementation
 
-The algorithm uses Depth-First-Search with memoization to efficiently process the graph of all game evolution possibilities (game states or *subgames*). Clearly, the number of nodes in this graph differs from deal to deal, however, on average, it is in order of tens of millions. This can be reduced by roughly a factor of 10 by saving recursive calls on consecutive cards; e.g., it is unnecessary to consider both playing a queen of spades and playing a king of spades &mdash the outcomes are exactly the same.
+The algorithm uses Depth-First-Search with memoization to efficiently process the graph of all game evolution possibilities (game states or *subgames*). Clearly, the number of nodes in this graph differs from deal to deal, however, on average, it is in order of tens of millions. This can be reduced by roughly a factor of 10 by saving recursive calls on consecutive cards; e.g., it is unnecessary to consider both playing a queen of spades and playing a king of spades &mdash; the outcomes are exactly the same.
