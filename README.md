@@ -7,15 +7,15 @@ Preference is a popular Russian card game that gained its popularity in the earl
 
 The complete set of rules of Preferans is sophisticated and has a great deal of nuances; you can read more [here](https://en.wikipedia.org/wiki/Preferans).
 
-### The task
+### The task.
 
 This program is not a robot-player preconditioned to maximize the returns, nor it is designed to produce optimal decisions for one of the players under incomplete information about the deal. Instead, it computes the outcome of the deal (the number of tricks taken by each player) assuming that *complete information* is available to all players (i.e., all cards open) and that they use it to *play optimally*. Optimal play is defined recursively: (1) it is optimal for a player with one card left to play it, and (2) it is optimal to play the card that leads to the most desirable outcome (according to the objective of the contract) assuming *optimal play* from the opponents. Note that we can safely assume *any play* from the opponents under this definition. In particular, if a certain move is projected to bring profit *P* assuming optimal play, it will bring at least *P* under any play from the opponents.
 
-### The implementation
+### The implementation.
 
 The algorithm uses Depth-First-Search with memoization to efficiently process the graph of all game evolution possibilities (game states or *subgames*). Clearly, the number of nodes in this graph differs from deal to deal, however, on average, it is in order of tens of millions. This can be reduced by roughly a factor of 10 by saving recursive calls on consecutive cards; e.g., it is unnecessary to consider both A&diams; K&diams;&mdash;the outcomes will be identical. In general, the algorithm takes anywhere from a few seconds to a few minutes to finish.
 
-### Example: Kovalevskaya's misere
+### Example: Kovalevskaya's misere.
 
 For a quick demonstration, consider a well-known example&mdash;Kovalskaya's misere. The deal is as follows:
 - North: 7&spades; 8&spades; 9&spades; 10&spades; 8&clubs; 7&diams; 8&diams; 9&diams; 8&hearts; 9&hearts;
@@ -53,4 +53,10 @@ Processed 20,236 subgames in 0 minute(s) 0 second(s).
 ```
 The misere is caught! The best outcome for the North is to take 1 trick.
 
-### Limitations
+### Limitations.
+
+While the solver tracks down optimal moves and prints them as part of the output, it can be difficult to undersatnd their logic. In the above example, North plays spades in rounds 5,6 and 7, which may seem unreasonable at first, more so before we know that the misere is doomed. Hence, the solver provides only limited explanation for its projections.
+
+Further, it is currently difficult to use the solver to guide play a real game. First, it requires knowing all cards on all hands; this information is usually available to only one player and only when playing "in the light". Second, one's opponents may not play optimally&emdash;these scenarios are not memorized by the solver and cannot be retrieved without recomputing the current subgame from scratch. Finally, there are often many equally optimal solutions so that even if one's opponents play optimally, the same problem will likely come up.
+
+On the other hand, this solver can compute missing subgames almost instantly for their complexity decreases exponentially with the number of cards. Hence, provided a simple and fast way to encode subgames, it seems feasible to use this solver for optimal play in certain scenarios.
