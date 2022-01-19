@@ -22,4 +22,4 @@ For a quick demonstration, consider a well-known example&mdash;Kovalskaya's mise
 - East: K&spades; A&spades; 10&clubs; J&clubs; Q&clubs; A&diams; 10&hearts; Q&hearts; K&hearts; A&hearts; 
 - South: J&spades; Q&spades; 7&clubs; 9&clubs; 10&diams; J&diams; Q&diams; K&diams; 7&hearts; J&hearts;
 
-North is playing misere; South is to start (clockwise).
+North is playing misere; South is to start (turns alternate clockwise). Can East and South catch it, i.e., force North to take one or more tricks? If so, how many under optimal play by North? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10).
