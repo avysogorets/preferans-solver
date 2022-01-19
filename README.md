@@ -22,9 +22,7 @@ For a quick demonstration, consider a well-known example&mdash;Kovalskaya's mise
 - East: K&spades; A&spades; 10&clubs; J&clubs; Q&clubs; A&diams; 10&hearts; Q&hearts; K&hearts; A&hearts; 
 - South: J&spades; Q&spades; 7&clubs; 9&clubs; 10&diams; J&diams; Q&diams; K&diams; 7&hearts; J&hearts;
 
-North is playing misere; South is to start (turns alternate clockwise). Can East and South catch it, i.e., force North to take one or more tricks? If so, how many under optimal play by North? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10).
-
-Our solver will output the following:
+North is playing misere; South is to start (turns alternate clockwise). Can East and South catch it, i.e., force North to take one or more tricks? If so, how many under optimal play by North? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10). Our solver will output the following:
 ```
 Welcome to Preference solver! Use S, C, D, H for spades, clubs, diamonds, and hearts, respectively.
 Enter cards for hand #1 (format SUIT:KIND) separated by the space key: H:9 H:8 D:9 D:8 D:7 C:8 S:10 S:9 S:8 S:7
@@ -60,3 +58,10 @@ While the solver tracks down optimal moves and prints them as part of the output
 Further, it is currently difficult to use the solver to guide play a real game. First, it requires knowing all cards on all hands; this information is usually available to only one player and only when playing "in the light". Second, one's opponents may not play optimally&emdash;these scenarios are not memorized by the solver and cannot be retrieved without recomputing the current subgame from scratch. Finally, there are often many equally optimal solutions so that even if one's opponents play optimally, the same problem will likely come up.
 
 On the other hand, this solver can compute missing subgames almost instantly for their complexity decreases exponentially with the number of cards. Hence, provided a simple and fast way to encode subgames, it seems feasible to use this solver for optimal play in certain scenarios.
+
+### Future work
+
+There are a few direction to improve this solver, I will list them in order of complexity:
+ - Add support for all-passes; currently, this solver only supports games and misere;
+ - Attach an appropriate playing cards GUI for ease of visualization;
+ - Design an efficient input-output pipeline to allow using the solver in real time in real games.
