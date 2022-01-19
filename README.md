@@ -54,11 +54,11 @@ The misere is caught! The best outcome for the North is to concede 1 trick.
 
 While the solver tracks down optimal moves and prints them as part of the output, it can be difficult to undersatnd the logic behind them. In the above example, North plays spades in rounds 5,6 and 7, which may seem unreasonable at first, especially before we know that the misere is doomed. Hence, the solver provides only limited explanation for its projections.
 
-Further, it is currently difficult to use the solver to guide play in a real game. First, it requires knowing all cards on all hands; this information is usually available only to the outstanding player and only when playing "in the light". Second, one's opponents may not play optimally&emdash;these scenarios are not memorized by the solver and cannot be retrieved without recomputing the current subgame from scratch. Finally, there are often many equally optimal solutions so that even if one's opponents play optimally, the same problem will likely come up. On the other hand, this solver can compute missing subgames almost instantly for their complexity decreases exponentially with the number of cards. Hence, provided a simple and fast way to encode subgames, it seems feasible to use this solver for optimal play in certain scenarios.
+Further, it is currently difficult to use the solver to guide play in a real game. First, it requires knowing all cards in all hands; this information is usually available only to the outstanding player and only when playing "in the light". Second, one's opponents may not play optimally&emdash;these scenarios are not memorized by the solver and cannot be retrieved without recomputing the current subgame from scratch. Finally, there are often many equally optimal solutions so that even if one's opponents play optimally, the same problem will likely come up. On the other hand, this solver can compute missing subgames almost instantly for their complexity decreases exponentially with the number of cards. Hence, provided a simple and fast way to encode subgames, it seems feasible to use this solver for optimal play in certain scenarios.
 
 ## Future work
 
-There are a few direction to improve this solver, I will list them in order of complexity:
- - Add support for all-passes; currently, the solver only supports plays and misere;
+There are a few directions to improve this solver; I will list them in order of increasing complexity:
+ - Add support for all-passes "in the light" (although they are not played "in the light"); currently, the solver only supports plays and misere;
  - Attach an appropriate playing cards GUI for ease of visualization;
  - Design an efficient input-output pipeline to allow using the solver in real time in real games.
