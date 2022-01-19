@@ -172,21 +172,23 @@ def main():
         game_params['major_suit']=input('Indicate the major suit (S, C, D, H, or -): ').upper() if game_params['game_type']!='M' else '-' # C # D
         try:
             hands=[Hand([CARDS[tuple(card.split(':'))] for card in hand.split(' ')]) for hand in hands]
-            assert len(hands[0].cards)==len(hands[1].cards)
-            assert len(hands[1].cards)==len(hands[2].cards)
-            assert game_params['player'] in ['1','2','3']
-            assert turn in ['1','2','3']
-            assert game_params['major_suit'] in ['S','C','D','H','-']
-            assert game_params['game_type'] in ['P','M']
-            accept_inputs=True
-            turn=int(turn)-1
-            game_params['player']=int(game_params['player'])-1
-            game_params['major_suit']=SUITS_TO_CODE[game_params['major_suit']]
-            hands.append(Hand([CARDS[('-','-')],CARDS[('-','-')]]))
+            error_msg=''
+            error_msg+='all cards appear exaclty once, ' if len(set([card for card in hands[0].cards]+[card for card in hands[1].cards]+[card for card in hands[2].cards]))!=30 else ''
+            error_msg+='all hands have equal number of cards, ' if not len(hands[0].cards)==len(hands[1].cards)==len(hands[2].cards) else ''
+            error_msg+='the game type is indicated correctly, ' if game_params['game_type'] not in ['P','M'] else ''
+            error_msg+='the playing hand is indicated correctly, ' if game_params['player'] not in ['1','2','3'] else ''
+            error_msg+='the short hand (turn) is indicated correctly, ' if turn not in ['1','2','3'] else ''
+            error_msg+='the major suit is indicated correctly, ' if game_params['major_suit'] not in ['S','C','D','H','-'] else ''
+            accept_inputs=True if len(error_msg)==0 else False
+            assert accept_inputs
         except:
-            print('Please check your inputs and try again.')
+            print(f"Please try again (check that {error_msg.rstrip(', ')}).")
     print("Copy that! Wait while the problem is being solved; this may take a few minutes...")
-    for i,hand in enumerate(hands):
+    turn=int(turn)-1
+    game_params['player']=int(game_params['player'])-1
+    game_params['major_suit']=SUITS_TO_CODE[game_params['major_suit']]
+    hands.append(Hand([CARDS[('-','-')],CARDS[('-','-')]]))
+    for hand in hands:
         hand.sort_cards()
     start_time=time.time()
     solver(hands,turn)
