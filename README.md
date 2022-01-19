@@ -17,6 +17,6 @@ The algorithm uses Depth-First-Search with memoization to efficiently process th
 
 ### Example: Kovalevskaya's misere
 
-To demonstrate &hearts;
+To demonstrate A&hearts;
 
 
