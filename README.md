@@ -3,7 +3,7 @@
 ### Introduction.
 Preference is a popular Russian card game that gained its popularity in the early 19-th century. It is played with a French 32-card deck (7 to Ace) dealt for three hands of 10 cards each and a 2-card talon. In a nutshell, Preferance is a trick-taking game with the goal of fulfilling a declared contract, agreed upon by all players during the bidding stage. At this stage, players can bid to either (1) pass (2) play a game, or (3) play misere, leading to one of three types of contracts: (1) all-passes, (2) game, or (3) misere. All-passes occurs when all players pass and requires them to avoid taikng tricks, adding negative points for each trick taken. Let's talk about other contracts in more detail:
 - *Game* is a contract where one player takes responsibility to take a declared number of tricks (no less than 6) under a major suit of his choice. The other players have an option to *whist*&mdash;contract themselves to take some or all of the remaining tricks. When exactly one player whists, he may choose to open up his and other player's cards, which is called "playing in the light". Ultimately, the player (and his opponents as a whole) are incentivized to take as many tricks as possible.
-- *Misere* is a contract where one player obliges himself to take no tricks at all. The other two players open up their cards and try to force the other player to take as many tricks as possible. Misere is a rare and risky game with a lot at stake and hence is not played too often.
+- *Misere* is a contract where one player obliges himself to take no tricks at all. The other two players open up their cards and try to force the other player to take as many tricks as possible. Note that misere is always played without a designated major suit. Misere is a rare and risky game with a lot at stake and hence is not played too often.
 
 The complete set of rules of Preferans is sophisticated and has a great deal of nuances; you can read more [here](https://en.wikipedia.org/wiki/Preferans).
 
@@ -24,7 +24,8 @@ For a quick demonstration, consider a well-known example&mdash;Kovalskaya's mise
 
 North is playing misere; South is to start (turns alternate clockwise). Can East and South catch it, i.e., force North to take one or more tricks? If so, how many under optimal play by North? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10).
 
-```Our solver will output the following:
+Our solver will output the following:
+```
 Welcome to Preference solver! Use S, C, D, H for spades, clubs, diamonds, and hearts, respectively.
 Enter cards for hand #1 (format SUIT:KIND) separated by the space key: H:9 H:8 D:9 D:8 D:7 C:8 S:10 S:9 S:8 S:7
 Enter cards for hand #2 (format SUIT:KIND) separated by the space key: S:K S:A C:10 C:J C:Q D:A H:10 H:Q H:K H:A
@@ -48,4 +49,8 @@ Hand #3 [PASS] H:J H:7 D:K D:Q D:J D:10 C:9 C:7 S:Q S:J (6)
 [08] [3 H:7 ][1 H:9 ][2 C:10] -> [1, 1, 6]
 [09] [1 C:8 ][2 C:J ][3 C:9 ] -> [1, 2, 6]
 [10] [2 C:Q ][3 C:7 ][1 S:10] -> [1, 3, 6]
-Processed 20,236 subgames in 0 minute(s) 0 second(s).```
+Processed 20,236 subgames in 0 minute(s) 0 second(s).
+```
+The misere is caught! The best outcome for the North is to take 1 trick.
+
+### Limitations
