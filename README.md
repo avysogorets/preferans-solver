@@ -48,7 +48,7 @@ Hand #3 [PASS] H:J H:7 D:K D:Q D:J D:10 C:9 C:7 S:Q S:J (6)
 [10] [2 C:Q ][3 C:7 ][1 S:10] -> [1, 3, 6]
 Processed 20,236 subgames in 0 minute(s) 0 second(s).
 ```
-The misere is caught! The best outcome for the North is to take 1 trick.
+The misere is caught! The best outcome for the North is to concede 1 trick.
 
 ## Limitations
 
