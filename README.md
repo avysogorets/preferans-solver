@@ -18,7 +18,8 @@ The algorithm uses Depth-First-Search with memoization to efficiently process th
 ### Example: Kovalevskaya's misere
 
 For a quick demonstration, consider a well-known example&mdash;Kovalskaya's misere. The deal is as follows:
-- North: 9&hearts;8&hearts;9&diams;8&diams;7&diams;8&clubs;10&spades;9&spades;8&spades;7&spades;
-- West: 
+- North: 9&hearts; 8&hearts; 9&diams; 8&diams ;7&diams; 8&clubs; 10&spades; 9&spades; 8&spades; 7&spades;
+- East: K&spades; A&spades; 10&clubs; J&clubs; Q&clubs; A&diams; 10&hearts; Q&hearts; K&hearts; A&hearts; 
+- South: J&spades; Q&spades; 7&clubs; 9&clubs 10&diams; J&diams; Q&diams; K&diams; 7&hearts; J&hearts;
 
 
