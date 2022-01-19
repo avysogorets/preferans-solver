@@ -22,4 +22,4 @@ For a quick demonstration, consider a well-known example&mdash;Kovalskaya's mise
 - East: K&spades; A&spades; 10&clubs; J&clubs; Q&clubs; A&diams; 10&hearts; Q&hearts; K&hearts; A&hearts; 
 - South: J&spades; Q&spades; 7&clubs; 9&clubs; 10&diams; J&diams; Q&diams; K&diams; 7&hearts; J&hearts;
 
-
+North is playing misere; South is to start (clockwise).
