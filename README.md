@@ -59,6 +59,6 @@ Further, it is currently difficult to use the solver to guide play in a real gam
 ## Future work
 
 There are a few directions to improve this solver; I will list them in order of increasing complexity:
- - Add support for all-passes "in the light" (although they are not played "in the light"); currently, the solver only supports plays and misere;
+ - Add support for all-passes "in the light" (although they are not played "in the light");
  - Attach an appropriate playing cards GUI for ease of visualization;
  - Design an efficient input-output pipeline to allow using the solver in real time in real games.
