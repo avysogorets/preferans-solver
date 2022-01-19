@@ -1,1 +1,2 @@
-# preference-solver
+### Preference (преферанс) solver.
+---
