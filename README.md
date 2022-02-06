@@ -1,6 +1,6 @@
 # Preferans (преферанс) solver.
 ## Introduction
-Preferans is a popular Russian card game that gained its popularity in the early 19-th century. It is played with a French 32-card deck (7 to Ace) dealt for three hands of 10 cards each and a 2-card talon. In a nutshell, Preferans is a trick-taking game with the goal of fulfilling a declared contract, agreed upon by all players during the bidding stage. At this stage, players can bid to either (1) pass (2) play a game, or (3) play misere, leading to one of three types of contracts: (1) all-passes, (2) play, or (3) misere. All-passes occurs when all players pass and requires them to avoid taikng tricks, adding negative points for each trick taken. Let's talk about other contracts in more detail:
+Preferans is a popular Russian card game that gained its popularity in the early 19-th century. It is played with a French 32-card deck (7 to Ace) dealt for three hands of 10 cards each and a 2-card talon. In a nutshell, Preferans is a trick-taking game with the goal of fulfilling a declared contract, agreed upon by all players during the bidding stage. At this stage, players can bid to either (1) pass (2) play a game, or (3) play misere, leading to one of three types of contracts: (1) all-passes, (2) play, or (3) misere. All-passes occurs when all players pass and requires them to avoid taikng tricks, adding negative points for each trick taken. Consider other contracts in more detail:
 - *Play* is a contract where one "outstanding" player takes responsibility to take a declared number of tricks (no less than 6) under a major suit of his choice. The other players have an option to *whist*&mdash;contract themselves to take some or all of the remaining tricks. When exactly one player whists, he may choose to open up his and other player's cards (but not the *outstanding player's cards*), which is called "playing in the light". Ultimately, the outstanding player and his opponents as a whole are incentivized to take as many tricks as possible.
 - *Misere* is a contract where one "outstanding" player obliges himself to take no tricks at all. The other two players open up their cards and try to force the other player to take as many tricks as possible. Note that misere is always played without a designated major suit. Misere is a rare and risky contract with a lot at stake and hence is not played too often.
 
@@ -53,13 +53,9 @@ The misere is caught! The best outcome for the North is to concede 1 trick.
 
 ## Limitations
 
-While the solver tracks down optimal moves and prints them as part of the output, it can be difficult to undersatnd the logic behind them. In the above example, North plays spades in rounds 5,6 and 7, which may seem unreasonable at first, especially before we know that the misere is doomed. Hence, the solver provides only limited explanation for its projections.
+While the solver tracks down optimal moves and prints them as part of the output, it can be difficult to undersatnd the logic behind them. In the above example, North plays spades in rounds 5,6 and 7, which may seem unreasonable at first, especially before we know that the misere is doomed. Hence, the solver provides only limited explanation for its projections. Further, the solver cannot apply to all real games because it requires knowing all cards in all hands.
 
-Further, it is currently difficult to use the solver to guide play in a real game. First, it requires knowing all cards in all hands; this information is usually available only to the outstanding player and only when playing "in the light". Second, one's opponents may not play optimally&mdash;these scenarios are not memorized by the solver and cannot be retrieved without recomputing the current subgame from scratch. Finally, there are often many equally optimal solutions so that even if one's opponents play optimally, the same problem will likely come up. On the other hand, this solver can compute missing subgames almost instantly for their complexity decreases exponentially with the number of cards. Hence, provided a simple and fast way to encode subgames, it seems feasible to use this solver for optimal play in certain scenarios.
+## GUI-solver
 
-## Future work
+The GUI-solver provides a visual interface for the ```solver.py``` file. Currently, the program only supports macOS and requires package ```tkmacosx``` as stated in ```requirements.txt```. To start the application, run ```python frontend.py``` from the ```solver-gui``` directory and follow instructions. 
 
-There are a few directions to improve this solver; I will list them in order of increasing complexity:
- - Add support for all-passes "in the light" (although they are not played "in the light");
- - Attach an appropriate playing cards GUI for ease of visualization;
- - Design an efficient input-output pipeline to allow using the solver in real time in real games.
