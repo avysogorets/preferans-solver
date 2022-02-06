@@ -58,4 +58,5 @@ While the solver tracks down optimal moves and prints them as part of the output
 ## GUI-solver
 
 The GUI-solver provides a visual interface for the ```solver.py``` file. Currently, the program only supports macOS and requires package ```tkmacosx``` as stated in ```requirements.txt```. To start the application, run ```python frontend.py``` from the ```solver-gui``` directory and follow instructions. 
-![deal](https://raw.githubusercontent.com/avysogorets/preferans-solver/master/examples/deal.png =100x)
+
+<img src="examples/deal.png" width="200">
