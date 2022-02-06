@@ -61,5 +61,6 @@ The GUI-solver provides a visual interface for the ```solver.py``` file. Current
 
 <p align="center">
   <img src="examples/deal.png" width="400" />
-  <img src="examples/contract.png" width="400" /> 
+  <img src="examples/contract.png" width="400" />
+  <em>Left: tap on cards to deal them to players (south, west, east); Right: Select a contract type and other details and press OK</em>
 </p>
