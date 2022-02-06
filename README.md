@@ -77,3 +77,6 @@ You will first be asked to deal out 30 cards to players and select the contract 
 There are three types of cards: inactive (grey), active non-optimal (white), and active optimal (pink). A card is inactive if you cannot cannot use it in this turn; otherwise it is active. Among these, white are non-optimal cards, i.e., using one of these will hurt the objective of the player. For example, if EAST uses 7&hearts; in this turn (see picture above), then SOUTH will not take any tricks under optimal play. Finally, using any of the optimal cards (pink) is consistent with current projections and is considered optimal play.
 
 Note the trick information by each players' hands. The first number specifies the number of tricks already taken by this player. The second number is the projected number of tricks to be taken by this player provided optimal play on all hands.
+
+Future versions of ```gui-solver``` will support game rewinding and undoing. The colors of inactive/optimal cards will be fixed, too.
+
