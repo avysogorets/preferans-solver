@@ -66,7 +66,7 @@ The GUI-solver provides a visual interface for the ```solver.py``` file. Current
   <em>Left: tap on cards to deal them to players (south, west, east); Right: Select contract type and other details and press OK.</em>
 </p>
 
-You will first be asked to deal out the card to players and select contract type. Once you press OK, the solver will start computing the solution (may take up to a few minutes). Press START to begin the play.
+You will first be asked to deal out 30 cards to players and select the contract type. Once you press OK, the solver will start computing the solution (may take up to a few minutes). Press START to begin the play.
 
 <p align="center">
   <img src="examples/play.png" width="400" />
