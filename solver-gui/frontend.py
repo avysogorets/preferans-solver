@@ -3,7 +3,7 @@ import tkinter as tk
 import tkinter.font as tkf
 from typing import Container
 from PIL import Image,ImageTk
-from preferans_backend import *
+from backend import *
 from functools import partial
 from tkmacosx import Button as MacButton
 
