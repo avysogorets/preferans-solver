@@ -2,7 +2,7 @@ import time
 import tkinter as tk
 import tkinter.font as tkf
 from PIL import Image,ImageTk
-from preferans_backend import *
+from backend import *
 from functools import partial
 import numpy as np
 from tkmacosx import Button as MacButton
@@ -16,9 +16,9 @@ BACKGROUND_COLOR='maroon'
 PLAYER_X_SIZE=50
 PLAYER_Y_SIZE=30
 BORDER_THICKNESS=CARD_X_SIZE//30
-IMG_DIR='preferans_cards'
-IMG_DIR_INACTIVE='preferans_cards_inactive'
-IMG_DIR_OPTIMAL='preferans_cards_optimal'
+IMG_DIR='card_imgs'
+IMG_DIR_INACTIVE='inactive_card_imgs'
+IMG_DIR_OPTIMAL='optimal_card_imgs'
 
 def equivalence_classes(hand):
     classes=[]
