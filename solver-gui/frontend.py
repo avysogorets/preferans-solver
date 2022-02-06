@@ -1,10 +1,10 @@
 import time
 import tkinter as tk
 import tkinter.font as tkf
-from typing import Container
 from PIL import Image,ImageTk
-from backend import *
+from preferans_backend import *
 from functools import partial
+import numpy as np
 from tkmacosx import Button as MacButton
 
 X_SIZE,Y_SIZE=960,640
@@ -16,9 +16,9 @@ BACKGROUND_COLOR='maroon'
 PLAYER_X_SIZE=50
 PLAYER_Y_SIZE=30
 BORDER_THICKNESS=CARD_X_SIZE//30
-IMG_DIR='card_imgs'
-IMG_DIR_INACTIVE='inactive_card_imgs'
-IMG_DIR_OPTIMAL='optimal_card_imgs'
+IMG_DIR='preferans_cards'
+IMG_DIR_INACTIVE='preferans_cards_inactive'
+IMG_DIR_OPTIMAL='preferans_cards_optimal'
 
 def equivalence_classes(hand):
     classes=[]
@@ -94,7 +94,8 @@ def deal_card(key):
         type_setup()
         player_setup()
         turn_setup()
-        major_suit_setup() 
+        major_suit_setup()
+        button_random.destroy()
 
 def play_card_wrapper(card_key):
     global continue_button
@@ -144,6 +145,12 @@ def play_card_wrapper(card_key):
         history['num_tricks'].append(num_tricks)
     else:
         highlight(optimal_cards,game_params['hands'][3].cards[0])
+
+def random_deal():
+    card_keys=np.random.choice([card.to_string for card in CARDS.values() if '-' not in card.to_string],size=len(buttons)-2,replace=False)
+    for card_key in card_keys:
+        deal_card(card_key)
+    
 
 def highlight(optimal_cards,flop):
     for key,card_button in card_buttons[(game_params['turn']+1)%3].items():
@@ -321,7 +328,7 @@ root.title("Preferans solver")
 deal_message=tk.StringVar(root,"Select 10 cards for SOUTH")
 deal_message_container=tk.Label(root,textvariable=deal_message,bd=0,font=tkf.Font(family="Garamond",size=44),fg='white',bg=BACKGROUND_COLOR)
 deal_message_container.place(relx=0.5,rely=0.1,anchor='center')
-deal_cards_container=tk.Frame(root,bg=BACKGROUND_COLOR,bd=0,height=2.31*CARD_Y_SIZE,width=15*CARD_STEP_X/1.5+2.05*CARD_X_SIZE)
+deal_cards_container=tk.Frame(root,bg=BACKGROUND_COLOR,bd=0,height=2.16*CARD_Y_SIZE,width=15*CARD_STEP_X/1.5+2.05*CARD_X_SIZE)
 deal_cards_container.place(relx=0.5,rely=0.4,anchor='center')
 south=tk.Frame(root,bg=BACKGROUND_COLOR,bd=0,height=1.4*CARD_Y_SIZE+2*BORDER_THICKNESS,width=9*CARD_STEP_X+CARD_X_SIZE+2*BORDER_THICKNESS)
 south.place(relx=0.5,rely=0.83,anchor='center')
@@ -353,6 +360,8 @@ images_optimal={key:ImageTk.PhotoImage(img.resize((CARD_X_SIZE,CARD_Y_SIZE),Imag
 buttons={key:tk.Button(deal_cards_container,image=image,borderwidth=0,bg=BACKGROUND_COLOR,highlightthickness=0,pady=0,padx=0) for key,image in images.items()}
 for i,(key,button) in enumerate(buttons.items()):
     button.config(command=partial(deal_card,key))
-    button.place(x=(CARD_STEP_X/1.5)*(i%16)+CARD_X_SIZE*(i%16>7),y=(1.3*CARD_Y_SIZE)*(i>=16))
+    button.place(x=(CARD_STEP_X/1.5)*(i%16)+CARD_X_SIZE*(i%16>7),y=(1.15*CARD_Y_SIZE)*(i>=16))
+button_random=MacButton(root,text='RANDOM',font=tkf.Font(family="Garamond",size=22),fg=BACKGROUND_COLOR,borderless=True,bg='white',highlightthickness=0,pady=0,padx=0,command=random_deal)
+button_random.place(relx=0.5,rely=0.4+1.1*CARD_Y_SIZE/Y_SIZE+0.05,anchor='center')
 south_buttons,west_buttons,east_buttons=dict(),dict(),dict()
 root.mainloop()
