@@ -1,8 +1,8 @@
 import time
 
-SUITS_TO_READ={0:'S',1:'C',2:'D',3:'H',None:'-'}
+SUITS_TO_READ={0:'S',1:'D',2:'C',3:'H',None:'-'}
 KINDS_TO_READ={0:'7',1:'8',2:'9',3:'10',4:'J',5:'Q',6:'K',7:'A',None:'-'}
-SUITS_TO_CODE={'S':0,'C':1,'D':2,'H':3,'-':None}
+SUITS_TO_CODE={'S':0,'D':1,'C':2,'H':3,'-':None}
 KINDS_TO_CODE={'7':0,'8':1,'9':2,'10':3,'J':4,'Q':5,'K':6,'A':7,'-':None}
 
 class Card(object):
