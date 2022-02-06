@@ -18,7 +18,7 @@ The algorithm uses Depth-First-Search with memoization to efficiently process th
 
 For a quick demonstration, consider a well-known example&mdash;Kovalevskaya's misere. The deal is as follows:
 - North: 7&spades; 8&spades; 9&spades; 10&spades; 7&diams; 8&diams; 9&diams; 8&clubs; 8&hearts; 9&hearts;
-- East: K&spades; A&spades; 10&clubs; J&clubs; Q&clubs; A&diams; 10&hearts; Q&hearts; K&hearts; A&hearts; 
+- East: K&spades; A&spades; A&diams; 10&clubs; J&clubs; Q&clubs; 10&hearts; Q&hearts; K&hearts; A&hearts; 
 - South: J&spades; Q&spades; 10&diams; J&diams; Q&diams; K&diams; 7&clubs; 9&clubs; 7&hearts; J&hearts;
 
 North is playing misere; South is to start (turns alternate clockwise). Can East and South catch it, i.e., force North to take one or more tricks? If so, how many under optimal play by North? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10). Our solver will output the following:
