@@ -78,5 +78,5 @@ There are three types of cards: inactive (grey), active non-optimal (white), and
 
 Note the trick information by each players' hands. The first number specifies the number of tricks already taken by this player. The second number is the projected number of tricks to be taken by this player provided optimal play on all hands.
 
-Future versions of ```gui-solver``` will support game rewinding and undoing. The colors of inactive/optimal cards will be fixed, too.
+Future versions of ```gui-solver``` will feature game rewinding and undoing and support Windows-based systems. The colors of inactive/optimal cards will be fixed, too.
 
