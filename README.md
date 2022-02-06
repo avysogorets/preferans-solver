@@ -60,7 +60,6 @@ While the solver tracks down optimal moves and prints them as part of the output
 The GUI-solver provides a visual interface for the ```solver.py``` file. Currently, the program only supports macOS and requires package ```tkmacosx``` as stated in ```requirements.txt```. To start the application, run ```python frontend.py``` from the ```solver-gui``` directory and follow instructions. 
 
 <p float="center">
-  <img src="examples/deal.png" width="320" />
-  <img src="examples/contract.png" width="320" /> 
-  <img src="examples/play.png" width="320" />
+  <img src="examples/deal.png" width="400" />
+  <img src="examples/contract.png" width="400" /> 
 </p>
