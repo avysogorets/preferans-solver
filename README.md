@@ -66,4 +66,14 @@ The GUI-solver provides a visual interface for the ```solver.py``` file. Current
   <em>Left: tap on cards to deal them to players (south, west, east); Right: Select contract type and other details and press OK.</em>
 </p>
 
-You will first be asked to deal out the card to players and select contract type. Once you press OK, the solver will start computing the solution (may take up to a few minutes). Press START to begin the play. 
+You will first be asked to deal out the card to players and select contract type. Once you press OK, the solver will start computing the solution (may take up to a few minutes). Press START to begin the play.
+
+<p align="center">
+  <img src="examples/play.png" width="400" />
+  <br/>
+  <em>Guided play: optimal cards highlighted in pink.</em>
+</p>
+
+There are three types of cards: inactive (grey), active non-optimal (white), and active optimal (pink). A card is inactive if you cannot cannot use it in this turn; otherwise it is active. Among these, white are non-optimal cards, i.e., using one of these will hurt the objective of the player. For example, if EAST uses 7&hearts in this turn (see picture above), then SOUTH will not take any tricks under optimal play. Finally, using any of the optimal cards (pink) will is consistent with current projections and is considered optimal play.
+
+Note the trick information by each players' hands. The first number specifies the number of tricks already taken by this player. The second number is the projected number of tricks to be taken by this player provided optimal play on all hands.
