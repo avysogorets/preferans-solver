@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import time
 import tkinter as tk
 import tkinter.font as tkf
@@ -5,7 +7,10 @@ from PIL import Image,ImageTk
 from backend import *
 from functools import partial
 import numpy as np
-from tkmacosx import Button as MacButton
+
+import platform
+if platform.system() == "Darwin":
+    from tkmacosx import Button as MacButton
 
 X_SIZE,Y_SIZE=960,640
 CARD_X_SIZE=X_SIZE//12
@@ -19,6 +24,31 @@ BORDER_THICKNESS=CARD_X_SIZE//30
 IMG_DIR='card_imgs'
 IMG_DIR_INACTIVE='inactive_card_imgs'
 IMG_DIR_OPTIMAL='optimal_card_imgs'
+
+if platform.system() == 'Darwin':
+    LABEL_FONT_SIZE=34
+    INFO_MESSAGE_FONT_SIZE=32
+    START_BUTTON_FONT_SIZE=32
+    DEAL_MESSAGE_FONT_SIZE=44
+    CURRENT_PROJECTED_FONT_SIZE=24
+else:
+    LABEL_FONT_SIZE=25  
+    INFO_MESSAGE_FONT_SIZE=24
+    START_BUTTON_FONT_SIZE=24
+    DEAL_MESSAGE_FONT_SIZE=32
+    CURRENT_PROJECTED_FONT_SIZE=18
+
+def osButton(parent, **kwargs):
+    if platform.system() == 'Darwin':
+        kwargs['font'] = tkf.Font(family="Garamond",size=18)
+        return MacButton(parent,**kwargs)
+
+    kwargs['font'] = tkf.Font(family="Garamond",size=12)
+    if 'borderless' in kwargs:
+        del(kwargs['borderless'])
+        kwargs['bd'] = 0
+    return tk.Button(parent,**kwargs)
+
 
 def equivalence_classes(hand):
     classes=[]
@@ -147,7 +177,7 @@ def play_card_wrapper(card_key):
         highlight(optimal_cards,game_params['hands'][3].cards[0])
 
 def random_deal():
-    card_keys=np.random.choice([card.to_string for card in CARDS.values() if '-' not in card.to_string],size=len(buttons)-2,replace=False)
+    card_keys=np.random.choice([card.to_string for card in CARDS.values() if '-' not in card.to_string and card.to_string not in east_buttons.keys() and card.to_string not in west_buttons.keys() and card.to_string not in south_buttons.keys()],size=len(buttons)-2,replace=False)
     for card_key in card_keys:
         deal_card(card_key)
     
@@ -204,13 +234,13 @@ def play_setup():
                     optimal_cards.append(card)
     highlight(optimal_cards,game_params['hands'][3].cards[0])
     canvas_west=tk.Canvas(root,width=CARD_STEP_X,height=CARD_STEP_Y*9+CARD_STEP_Y,bg=BACKGROUND_COLOR,bd=0,highlightthickness=0)
-    west_info=canvas_west.create_text(CARD_STEP_X//1.3,CARD_STEP_Y*9//2+CARD_STEP_Y//2,angle=90,text=f"current/projected: 0/{optimal_num_tricks[1]}",fill="white",font=tkf.Font(family="Garamond",size=24),anchor='s',justify=tk.CENTER)
+    west_info=canvas_west.create_text(CARD_STEP_X//1.3,CARD_STEP_Y*9//2+CARD_STEP_Y//2,angle=90,text=f"current/projected: 0/{optimal_num_tricks[1]}",fill="white",font=tkf.Font(family="Garamond",size=CURRENT_PROJECTED_FONT_SIZE),anchor='s',justify=tk.CENTER)
     canvas_west.place(relx=0.205,rely=0.47,anchor='center')
     canvas_east=tk.Canvas(root,width=CARD_STEP_X,height=CARD_STEP_Y*9+CARD_STEP_Y,bg=BACKGROUND_COLOR,bd=0,highlightthickness=0)
-    east_info=canvas_east.create_text(CARD_STEP_X,CARD_STEP_Y*9//2+CARD_STEP_Y//2,angle=90,text=f"current/projected: 0/{optimal_num_tricks[2]}",fill="white",font=tkf.Font(family="Garamond",size=24),anchor='s',justify=tk.CENTER)
+    east_info=canvas_east.create_text(CARD_STEP_X,CARD_STEP_Y*9//2+CARD_STEP_Y//2,angle=90,text=f"current/projected: 0/{optimal_num_tricks[2]}",fill="white",font=tkf.Font(family="Garamond",size=CURRENT_PROJECTED_FONT_SIZE),anchor='s',justify=tk.CENTER)
     canvas_east.place(relx=0.79,rely=0.47,anchor='center')
     canvas_south=tk.Canvas(root,width=CARD_STEP_Y*9+CARD_STEP_Y,height=CARD_STEP_X,bg=BACKGROUND_COLOR,bd=0,highlightthickness=0)
-    south_info=canvas_south.create_text(CARD_STEP_Y*9//2+CARD_STEP_Y//2,CARD_STEP_X//1.3,angle=0,text=f"current/projected: 0/{optimal_num_tricks[0]}",fill="white",font=tkf.Font(family="Garamond",size=24),anchor='s',justify=tk.CENTER)
+    south_info=canvas_south.create_text(CARD_STEP_Y*9//2+CARD_STEP_Y//2,CARD_STEP_X//1.3,angle=0,text=f"current/projected: 0/{optimal_num_tricks[0]}",fill="white",font=tkf.Font(family="Garamond",size=CURRENT_PROJECTED_FONT_SIZE),anchor='s',justify=tk.CENTER)
     canvas_south.place(relx=0.5,rely=0.68,anchor='center')
     hand_info_texts=[south_info,west_info,east_info]
     hand_info_canvases=[canvas_south,canvas_west,canvas_east]
@@ -235,9 +265,9 @@ def solve():
     game_params['hands'],solution,info=solve_dp(game_params)
     virtual_hands=[Hand(hand.cards) for hand in game_params['hands']]
     classes=[equivalence_classes(hand) for hand in game_params['hands'][:3]]
-    info_message_container.config(font=tkf.Font(family="Garamond",size=32))
-    info_message.set(f"Solved {info['subgames']:,} subgames in {info['time']:.0f} sec(s).")
-    start_button=tk.Button(root,text='START',borderwidth=0,bg='white',font=tkf.Font(family="Garamond",size=32),fg=BACKGROUND_COLOR,highlightthickness=0,command=play_setup)
+    info_message_container.config(font=tkf.Font(family="Garamond",size=INFO_MESSAGE_FONT_SIZE))
+    info_message.set(f"Solved {info['subgames']:,} subgames in {info['time']:.0f} sec(s)")
+    start_button=tk.Button(root,text='START',borderwidth=0,bg='white',font=tkf.Font(family="Garamond",size=START_BUTTON_FONT_SIZE),fg=BACKGROUND_COLOR,highlightthickness=0,command=play_setup)
     start_button.place(relx=0.5,rely=0.24,anchor='center')
 
 def process_selection(param,val):
@@ -270,55 +300,55 @@ def process_selection(param,val):
         accept_setup()
 
 def type_setup():
-    type_question_message=tk.Label(set_up_container,text="Contract type:",bd=0,bg=BACKGROUND_COLOR,font=tkf.Font(family="Garamond",size=34),fg='white')
+    type_question_message=tk.Label(set_up_container,text="Contract type:",bd=0,bg=BACKGROUND_COLOR,font=tkf.Font(family="Garamond",size=LABEL_FONT_SIZE),fg='white')
     type_question_message.grid(row=0,columnspan=6,sticky=tk.W)
-    button_play=MacButton(set_up_container,borderless=True,bg='white',text="PLAY",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'type','P'))
+    button_play=osButton(set_up_container,borderless=True,bg='white',text="PLAY",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'type','P'))
     button_play.grid(row=1,column=0,columnspan=3,sticky=tk.NSEW)
-    button_misere=MacButton(set_up_container,borderless=True,bg='white',text="MISERE",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'type','M'))
+    button_misere=osButton(set_up_container,borderless=True,bg='white',text="MISERE",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'type','M'))
     button_misere.grid(row=1,column=3,columnspan=3,sticky=tk.NSEW)
     params_buttons['type']={'P':button_play,'M':button_misere}
 
 def player_setup():
-    player_question_message=tk.Label(set_up_container,text="Playing hand:",bd=0,bg=BACKGROUND_COLOR,font=tkf.Font(family="Garamond",size=34),fg='white')
+    player_question_message=tk.Label(set_up_container,text="Playing hand:",bd=0,bg=BACKGROUND_COLOR,font=tkf.Font(family="Garamond",size=LABEL_FONT_SIZE),fg='white')
     player_question_message.grid(row=2,columnspan=6,sticky=tk.W)
-    button_south=MacButton(set_up_container,borderless=True,bg='white',text="SOUTH",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'player',0))
+    button_south=osButton(set_up_container,borderless=True,bg='white',text="SOUTH",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'player',0))
     button_south.grid(row=3,column=0,columnspan=2,sticky=tk.NSEW)
-    button_west=MacButton(set_up_container,borderless=True,bg='white',text="WEST",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'player',1))
+    button_west=osButton(set_up_container,borderless=True,bg='white',text="WEST",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'player',1))
     button_west.grid(row=3,column=2,columnspan=2,sticky=tk.NSEW)
-    button_east=MacButton(set_up_container,borderless=True,bg='white',text="EAST",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'player',2))
+    button_east=osButton(set_up_container,borderless=True,bg='white',text="EAST",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'player',2))
     button_east.grid(row=3,column=4,columnspan=2,sticky=tk.NSEW)
     params_buttons['player']={0:button_south,1:button_west,2:button_east}
 
 def turn_setup():
-    turn_question_message=tk.Label(set_up_container,text="Short hand:",bd=0,bg=BACKGROUND_COLOR,font=tkf.Font(family="Garamond",size=34),fg='white')
+    turn_question_message=tk.Label(set_up_container,text="Short hand:",bd=0,bg=BACKGROUND_COLOR,font=tkf.Font(family="Garamond",size=LABEL_FONT_SIZE),fg='white')
     turn_question_message.grid(row=4,columnspan=6,sticky=tk.W)
-    button_south=MacButton(set_up_container,borderless=True,bg='white',text="SOUTH",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'turn',0))
+    button_south=osButton(set_up_container,borderless=True,bg='white',text="SOUTH",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'turn',0))
     button_south.grid(row=5,columnspan=2,column=0,sticky=tk.NSEW)
-    button_west=MacButton(set_up_container,borderless=True,bg='white',text="WEST",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'turn',1))
+    button_west=osButton(set_up_container,borderless=True,bg='white',text="WEST",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'turn',1))
     button_west.grid(row=5,columnspan=2,column=2,sticky=tk.NSEW)
-    button_east=MacButton(set_up_container,borderless=True,bg='white',text="EAST",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'turn',2))
+    button_east=osButton(set_up_container,borderless=True,bg='white',text="EAST",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'turn',2))
     button_east.grid(row=5,columnspan=2,column=4,sticky=tk.NSEW)
     params_buttons['turn']={0:button_south,1:button_west,2:button_east}
 
 def major_suit_setup():
-    major_suit_question_message=tk.Label(set_up_container,text="Major suit:",bd=0,bg=BACKGROUND_COLOR,font=tkf.Font(family="Garamond",size=34),fg='white')
+    major_suit_question_message=tk.Label(set_up_container,text="Major suit:",bd=0,bg=BACKGROUND_COLOR,font=tkf.Font(family="Garamond",size=LABEL_FONT_SIZE),fg='white')
     major_suit_question_message.grid(row=6,columnspan=6,sticky=tk.W)
-    button_spades=MacButton(set_up_container,borderless=True,bg='white',image=suit_imgs['S'],font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','S'))
+    button_spades=osButton(set_up_container,borderless=True,bg='white',image=suit_imgs['S'],font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','S'))
     button_spades.grid(row=7,column=0,sticky=tk.NSEW)
-    button_clubs=MacButton(set_up_container,borderless=True,bg='white',image=suit_imgs['C'],font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','C'))
+    button_clubs=osButton(set_up_container,borderless=True,bg='white',image=suit_imgs['C'],font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','C'))
     button_clubs.grid(row=7,column=1,sticky=tk.NSEW)
-    button_diamonds=MacButton(set_up_container,borderless=True,bg='white',image=suit_imgs['D'],font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','D'))
+    button_diamonds=osButton(set_up_container,borderless=True,bg='white',image=suit_imgs['D'],font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','D'))
     button_diamonds.grid(row=7,column=2,sticky=tk.NSEW)
-    button_hearts=MacButton(set_up_container,borderless=True,bg='white',image=suit_imgs['H'],font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','H'))
+    button_hearts=osButton(set_up_container,borderless=True,bg='white',image=suit_imgs['H'],font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','H'))
     button_hearts.grid(row=7,column=3,sticky=tk.NSEW)
-    button_none=MacButton(set_up_container,borderless=True,bg='white',text="NONE",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','-'))
+    button_none=osButton(set_up_container,borderless=True,bg='white',text="NONE",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','-'))
     button_none.grid(row=7,column=4,columnspan=2,sticky=tk.NSEW)
     params_buttons['major_suit']={'S':button_spades,'C':button_clubs,'D':button_diamonds,'H':button_hearts,'-':button_none}
 
 def accept_setup():
     params_buttons['blank']=tk.Frame(set_up_container,bd=0,height=Y_SIZE//20,width=X_SIZE//2.5,bg=BACKGROUND_COLOR)
     params_buttons['blank'].grid(row=8,column=0,columnspan=6,sticky=tk.W)
-    params_buttons['ok']=MacButton(set_up_container,highlightbackground='white',highlightthickness=3,bd=0,bg='grey40',text="OK",font=tkf.Font(family="Garamond",size=18),fg='white',command=solve)
+    params_buttons['ok']=osButton(set_up_container,highlightbackground='white',highlightthickness=3,bd=0,bg='grey40',text="OK",font=tkf.Font(family="Garamond",size=18),fg='white',command=solve)
     params_buttons['ok'].grid(row=9,column=2,columnspan=2,sticky=tk.NSEW)
 
 root=tk.Tk()
@@ -326,7 +356,7 @@ root.geometry(f"{X_SIZE}x{Y_SIZE}")
 root.configure(background=BACKGROUND_COLOR)
 root.title("Preferans solver")
 deal_message=tk.StringVar(root,"Select 10 cards for SOUTH")
-deal_message_container=tk.Label(root,textvariable=deal_message,bd=0,font=tkf.Font(family="Garamond",size=44),fg='white',bg=BACKGROUND_COLOR)
+deal_message_container=tk.Label(root,textvariable=deal_message,bd=0,font=tkf.Font(family="Garamond",size=DEAL_MESSAGE_FONT_SIZE),fg='white',bg=BACKGROUND_COLOR)
 deal_message_container.place(relx=0.5,rely=0.1,anchor='center')
 deal_cards_container=tk.Frame(root,bg=BACKGROUND_COLOR,bd=0,height=2.16*CARD_Y_SIZE,width=15*CARD_STEP_X/1.5+2.05*CARD_X_SIZE)
 deal_cards_container.place(relx=0.5,rely=0.4,anchor='center')
@@ -361,7 +391,7 @@ buttons={key:tk.Button(deal_cards_container,image=image,borderwidth=0,bg=BACKGRO
 for i,(key,button) in enumerate(buttons.items()):
     button.config(command=partial(deal_card,key))
     button.place(x=(CARD_STEP_X/1.5)*(i%16)+CARD_X_SIZE*(i%16>7),y=(1.15*CARD_Y_SIZE)*(i>=16))
-button_random=MacButton(root,text='RANDOM',font=tkf.Font(family="Garamond",size=22),fg=BACKGROUND_COLOR,borderless=True,bg='white',highlightthickness=0,pady=0,padx=0,command=random_deal)
+button_random=osButton(root,text='RANDOM DEAL',borderless=True,font=tkf.Font(family="Garamond",size=22),fg=BACKGROUND_COLOR, bg='white',highlightthickness=0,pady=0,padx=0,command=random_deal)
 button_random.place(relx=0.5,rely=0.4+1.1*CARD_Y_SIZE/Y_SIZE+0.05,anchor='center')
 south_buttons,west_buttons,east_buttons=dict(),dict(),dict()
 root.mainloop()
