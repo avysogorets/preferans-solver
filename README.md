@@ -57,7 +57,7 @@ While the solver tracks down optimal moves and prints them as part of the output
 
 ## GUI-solver
 
-The GUI-solver provides a visual interface for the ```solver.py``` file. Currently, the program only supports macOS and requires package ```tkmacosx``` as stated in ```requirements.txt```. To start the application, run ```python frontend.py``` from the ```solver-gui``` directory and follow instructions. 
+The GUI-solver provides a visual interface for the ```solver.py``` file. To start the application, run ```python frontend.py``` from the ```solver-gui``` directory and follow instructions. 
 
 <p align="center">
   <img src="examples/deal.png" width="400" />
@@ -78,5 +78,5 @@ There are three types of cards: inactive (grey), active non-optimal (white), and
 
 Note the trick information by each players' hands. The first number specifies the number of tricks already taken by this player. The second number is the projected number of tricks to be taken by this player provided optimal play on all hands.
 
-Future versions of ```gui-solver``` will feature game rewinding and undoing and support Windows-based systems. The colors of inactive/optimal cards will be fixed, too.
+Future versions of ```gui-solver``` will feature game rewinding and undoing. The colors of inactive/optimal cards will be fixed, too.
 
