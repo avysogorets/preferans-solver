@@ -277,6 +277,12 @@ def process_selection(param,val):
         params_buttons[param][val].config(bg='pink3',fg='white')
         if val=='M':
             process_selection('major_suit','-')
+            for key,button in params_buttons['major_suit'].items():
+                if key!='-':
+                    button["state"]="disabled"
+        else:
+            for button in params_buttons['major_suit'].values():
+                button["state"]="normal"
     if param=='player':
         for button in params_buttons[param].values():
             button.config(bg='white',fg=BACKGROUND_COLOR)
@@ -285,7 +291,7 @@ def process_selection(param,val):
         for button in params_buttons[param].values():
             button.config(bg='white',fg=BACKGROUND_COLOR)
         params_buttons[param][val].config(bg='pink3',fg='white')
-    if param=='major_suit' and ('type' not in game_params or game_params['type']=='P'):
+    if param=='major_suit':
         for key,button in params_buttons[param].items():
             if key!='-':
                 button.config(bg='white',image=suit_imgs[key])
