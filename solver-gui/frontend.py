@@ -1,17 +1,18 @@
 #!/usr/bin/python3
 
-import time
 import tkinter as tk
 import tkinter.font as tkf
 from PIL import Image,ImageTk
 from backend import *
 from functools import partial
 import numpy as np
-
+import os
 import platform
-if platform.system() == "Darwin":
-    from tkmacosx import Button as MacButton
 
+if platform.system() == "Darwin":
+    MESSAGE_FONT=24
+else:
+    MESSAGE_FONT=18
 X_SIZE,Y_SIZE=960,640
 CARD_X_SIZE=X_SIZE//12
 CARD_Y_SIZE=CARD_X_SIZE*890//634
@@ -21,383 +22,435 @@ BACKGROUND_COLOR='maroon'
 PLAYER_X_SIZE=50
 PLAYER_Y_SIZE=30
 BORDER_THICKNESS=CARD_X_SIZE//30
-IMG_DIR='card_imgs'
-IMG_DIR_INACTIVE='inactive_card_imgs'
-IMG_DIR_OPTIMAL='optimal_card_imgs'
+IMG_DIR='images/card_imgs_normal'
+IMG_DIR_DISABLED='images/card_imgs_disabled'
+IMG_DIR_OPTIMAL='images/card_imgs_optimal'
+IMG_DIR_UTILS='images/card_utils'
 
-if platform.system() == 'Darwin':
-    LABEL_FONT_SIZE=34
-    INFO_MESSAGE_FONT_SIZE=32
-    START_BUTTON_FONT_SIZE=32
-    DEAL_MESSAGE_FONT_SIZE=44
-    CURRENT_PROJECTED_FONT_SIZE=24
-else:
-    LABEL_FONT_SIZE=25  
-    INFO_MESSAGE_FONT_SIZE=24
-    START_BUTTON_FONT_SIZE=24
-    DEAL_MESSAGE_FONT_SIZE=32
-    CURRENT_PROJECTED_FONT_SIZE=18
-
-def osButton(parent, **kwargs):
-    if platform.system() == 'Darwin':
-        kwargs['font'] = tkf.Font(family="Garamond",size=18)
+def Button(parent,**kwargs):
+    kwargs['disabledbackground']='grey80' if 'disabledbackground' not in kwargs else kwargs['disabledbackground']
+    kwargs['highlightthickness']=0 if 'highlightthickness' not in kwargs else kwargs['highlightthickness']
+    if platform.system()=='Darwin':
+        from tkmacosx import Button as MacButton
+        MESSAGE_FONT=24
+        kwargs['font']=tkf.Font(family="Garamond",size=int(MESSAGE_FONT*(3/4))) if 'font' not in kwargs else kwargs['font']
+        kwargs['borderless']=True if 'borderless' not in kwargs else kwargs['borderless']
         return MacButton(parent,**kwargs)
-
-    kwargs['font'] = tkf.Font(family="Garamond",size=12)
-    if 'borderless' in kwargs:
-        del(kwargs['borderless'])
-        kwargs['bd'] = 0
-    return tk.Button(parent,**kwargs)
-
-
-def equivalence_classes(hand):
-    classes=[]
-    for i,card in enumerate(sorted(hand.cards)):
-        if i>0 and sorted(hand.cards)[i-1].suit==card.suit and sorted(hand.cards)[i-1].kind==card.kind-1:
-            classes[-1].append(card)
-        else:
-            classes.append([card])
-    return classes
-
-def deal_card(key):
-    buttons[key].destroy()
-    del buttons[key]
-    if len(buttons)>22:
-        deal_message.set(f'Select {(len(buttons)-2)%10 if (len(buttons)-2)%10>0 else 10} card{"s" if (len(buttons)-2)%10!=1 else ""} for SOUTH')
-    if len(buttons)<=22 and len(buttons)>12:
-        deal_message.set(f'Select {(len(buttons)-2)%10 if (len(buttons)-2)%10>0 else 10} card{"s" if (len(buttons)-2)%10!=1 else ""} for WEST')
-    if len(buttons)<=12:
-        deal_message.set(f'Select {(len(buttons)-2)%10 if (len(buttons)-2)%10>0 else 10} card{"s" if (len(buttons)-2)%10!=1 else ""} for EAST')
-    if len(buttons)<32 and len(buttons)>=22:
-        curr_index=0
-        sorted_cards=sorted(south_buttons.items(),key=lambda item:CARDS[tuple(item[0].split(':'))])
-        while curr_index<len(south_buttons) and CARDS[tuple(sorted_cards[curr_index][0].split(':'))]<CARDS[tuple(key.split(':'))]:
-            curr_index+=1
-        south_buttons[key]=tk.Button(south_cards_container,image=images[key],borderwidth=0,bg=BACKGROUND_COLOR,highlightthickness=0,pady=0,padx=0,command=partial(play_card_wrapper,key))
-        south_buttons[key].place(x=curr_index*CARD_STEP_X-BORDER_THICKNESS//2,y=-BORDER_THICKNESS//2)
-        while curr_index<len(south_buttons)-1:
-            sorted_cards[curr_index][1].place(x=(curr_index+1)*CARD_STEP_X-BORDER_THICKNESS//2,y=-BORDER_THICKNESS//2)
-            sorted_cards[curr_index][1].tkraise()
-            curr_index+=1
-    if len(buttons)<22 and len(buttons)>=12:
-        curr_index=0
-        sorted_cards=sorted(west_buttons.items(),key=lambda item:CARDS[tuple(item[0].split(':'))])
-        while curr_index<len(west_buttons) and CARDS[tuple(sorted_cards[curr_index][0].split(':'))]<CARDS[tuple(key.split(':'))]:
-            curr_index+=1
-        west_buttons[key]=tk.Button(west_cards_container,image=images[key],borderwidth=0,bg=BACKGROUND_COLOR,highlightthickness=0,pady=0,padx=0,command=partial(play_card_wrapper,key))
-        west_buttons[key].place(x=-BORDER_THICKNESS//4,y=curr_index*CARD_STEP_Y-BORDER_THICKNESS//2)
-        while curr_index<len(west_buttons)-1:
-            sorted_cards[curr_index][1].place(x=-BORDER_THICKNESS//4,y=(curr_index+1)*CARD_STEP_Y-BORDER_THICKNESS//4)
-            sorted_cards[curr_index][1].tkraise()
-            curr_index+=1
-    if len(buttons)<12 and len(buttons)>=2:
-        curr_index=0
-        sorted_cards=sorted(east_buttons.items(),key=lambda item:CARDS[tuple(item[0].split(':'))])
-        while curr_index<len(east_buttons) and CARDS[tuple(sorted_cards[curr_index][0].split(':'))]<CARDS[tuple(key.split(':'))]:
-            curr_index+=1
-        east_buttons[key]=tk.Button(east_cards_container,image=images[key],borderwidth=0,bg=BACKGROUND_COLOR,highlightthickness=0,pady=0,padx=0,command=partial(play_card_wrapper,key))
-        east_buttons[key].place(x=-BORDER_THICKNESS//4,y=curr_index*CARD_STEP_Y-BORDER_THICKNESS//4)
-        while curr_index<len(east_buttons)-1:
-            sorted_cards[curr_index][1].place(x=-BORDER_THICKNESS//4,y=(curr_index+1)*CARD_STEP_Y-BORDER_THICKNESS//4)
-            sorted_cards[curr_index][1].tkraise()
-            curr_index+=1
-    if len(buttons)==2:
-        for widget in deal_cards_container.winfo_children():
-            widget.destroy()
-        deal_cards_container.destroy()
-        deal_message_container.destroy()
-        global game_params,params_buttons,set_up_container,suit_imgs,params_msgs,card_buttons
-        card_buttons={0:south_buttons,1:west_buttons,2:east_buttons}
-        game_params,params_buttons,suit_imgs,params_msgs=dict(),dict(),dict(),dict()
-        game_params['hands']={0:south_buttons.keys(),1:west_buttons.keys(),2:east_buttons.keys()}
-        set_up_container=tk.Frame(root,bg=BACKGROUND_COLOR,bd=0,height=Y_SIZE//1.7,width=X_SIZE//2.5)
-        set_up_container.place(relx=0.5,rely=0.375,anchor='center')
-        set_up_container.grid_propagate(0)
-        for col in range(6):
-            set_up_container.grid_columnconfigure(col,weight=1,uniform='_')
-        for suit in SUITS_TO_CODE.keys():
-            if suit!='-':
-                suit_imgs[suit]=Image.open(IMG_DIR+f"/{suit}.png")
-                suit_imgs[suit+'-white']=Image.open(IMG_DIR+f"/{suit}-white.png")
-        for key,image in suit_imgs.items():
-            suit_imgs[key]=ImageTk.PhotoImage(image.resize((20,int(image.size[1]*(20/image.size[0]))),Image.ANTIALIAS))
-        type_setup()
-        player_setup()
-        turn_setup()
-        major_suit_setup()
-        button_random.destroy()
-
-def play_card_wrapper(card_key):
-    global continue_button
-    card_buttons[game_params['turn']][card_key].destroy()
-    del card_buttons[game_params['turn']][card_key]
-    trick_containers[game_params['turn']].config(image=images[card_key])
-    for equiv_class in classes[game_params['turn']]:
-        if CARDS[tuple(card_key.split(':'))] in equiv_class:
-            current_equivalence_class=equiv_class
-    for card in current_equivalence_class:
-        local_hand=Hand(virtual_hands[game_params['turn']].cards)
-        local_flop=Hand(virtual_hands[3].cards)
-        _,new_turn=local_hand.play_card(card,game_params['turn'],local_flop)
-        key_string=' '.join([hand.to_string() for hand in virtual_hands[:game_params['turn']]+[local_hand]+virtual_hands[game_params['turn']+1:-1]+[local_flop]])+f' {new_turn}'
-        if key_string in solution:
-            virtual_hands[game_params['turn']].play_card(card,game_params['turn'],virtual_hands[3])
-            break
-    history[game_params['turn']].append(card_key)
-    tricks,game_params['turn']=game_params['hands'][game_params['turn']].play_card(CARDS[tuple(card_key.split(':'))],game_params['turn'],game_params['hands'][3])
-    num_tricks=solution[key_string]['num_tricks']
-    current_tricks[0]=current_tricks[0]+tricks[0]
-    current_tricks[1]=current_tricks[1]+tricks[1]
-    current_tricks[2]=current_tricks[2]+tricks[2]
-    optimal_cards=[]
-    for card in game_params['hands'][game_params['turn']].options(game_params['hands'][3].cards[0],all=True):
-        for equiv_class in classes[game_params['turn']]:
-            if card in equiv_class:
-                current_equivalence_class=equiv_class
-        for card in current_equivalence_class:
-            local_hand=Hand(virtual_hands[game_params['turn']].cards)
-            local_flop=Hand(virtual_hands[3].cards)
-            new_tricks,new_turn=local_hand.play_card(card,game_params['turn'],local_flop)
-            key_string=' '.join([hand.to_string() for hand in virtual_hands[:game_params['turn']]+[local_hand]+virtual_hands[game_params['turn']+1:-1]+[local_flop]])+f' {new_turn}'
-            if key_string in solution and [future+current for future,current in zip(solution[key_string]['num_tricks'],new_tricks)][game_params['player']]==num_tricks[game_params['player']]:
-                for card in current_equivalence_class:
-                    optimal_cards.append(card)
-    hand_info_canvases[0].itemconfig(hand_info_texts[0],text=f"current/projected: {current_tricks[0]}/{current_tricks[0]+num_tricks[0]}")
-    hand_info_canvases[1].itemconfig(hand_info_texts[1],text=f"current/projected: {current_tricks[1]}/{current_tricks[1]+num_tricks[1]}")
-    hand_info_canvases[2].itemconfig(hand_info_texts[2],text=f"current/projected: {current_tricks[2]}/{current_tricks[2]+num_tricks[2]}")
-    if sum(len(card_button.items()) for card_button in card_buttons.values())%3==0 and sum(len(card_button.items()) for card_button in card_buttons.values())<30:
-        continue_button=tk.Button(root,text='CONTINUE',borderwidth=0,bg='white',font=tkf.Font(family="Garamond",size=24),fg=BACKGROUND_COLOR,highlightthickness=0)
-        continue_button.config(command=partial(erase_tricks,optimal_cards,game_params['hands'][3].cards[0]))
-        continue_button.place(relx=0.5,rely=0.6,anchor='center')
-        for card_button in card_buttons.values():
-            for button in card_button.values():
-                button["state"]="disable"
-        history['num_tricks'].append(num_tricks)
     else:
-        highlight(optimal_cards,game_params['hands'][3].cards[0])
+        MESSAGE_FONT=18
+        kwargs['font']=tkf.Font(family="Garamond",size=int(MESSAGE_FONT*(3/4))) if 'font' not in kwargs else kwargs['font']
+        return tk.Button(parent,**kwargs)
 
-def random_deal():
-    card_keys=np.random.choice([card.to_string for card in CARDS.values() if '-' not in card.to_string and card.to_string not in east_buttons.keys() and card.to_string not in west_buttons.keys() and card.to_string not in south_buttons.keys()],size=len(buttons)-2,replace=False)
-    for card_key in card_keys:
-        deal_card(card_key)
+def Label(parent,**kwargs):
+    kwargs['font']=tkf.Font(family="Garamond",size=MESSAGE_FONT) if 'font' not in kwargs else kwargs['font']
+    kwargs['bd']=0
+    return tk.Label(parent,**kwargs)
+
+class GUI:
+    def __init__(self,root):
+        self.root=root
+        self.games=[Game()]
+        self.solution=None
+        self.current_game=0
+        self.equivalence_classes={}
+        self.images={}
+        images={card.to_string:Image.open(IMG_DIR+f"/{card.to_string}.png") for card in CARDS.values()}
+        self.images['normal']={card_key:ImageTk.PhotoImage(img.resize((CARD_X_SIZE,CARD_Y_SIZE),Image.ANTIALIAS)) for card_key,img in images.items()}
+        images={card.to_string:Image.open(IMG_DIR_DISABLED+f"/{card.to_string}.png") for card in CARDS.values()}
+        self.images['disabled']={card_key:ImageTk.PhotoImage(img.resize((CARD_X_SIZE,CARD_Y_SIZE),Image.ANTIALIAS)) for card_key,img in images.items()}
+        images={card.to_string:Image.open(IMG_DIR_OPTIMAL+f"/{card.to_string}.png") for card in CARDS.values()}
+        self.images['optimal']={card_key:ImageTk.PhotoImage(img.resize((CARD_X_SIZE,CARD_Y_SIZE),Image.ANTIALIAS)) for card_key,img in images.items()}
+        images={filename.split('.')[0]:Image.open(os.path.join(IMG_DIR_UTILS,filename)) for filename in os.listdir(IMG_DIR_UTILS)}
+        self.images['utils']={key:ImageTk.PhotoImage(img.resize((int(MESSAGE_FONT*(3/4)),int(MESSAGE_FONT*(3/4))),Image.ANTIALIAS)) for key,img in images.items()}
+        self.info_image=ImageTk.PhotoImage(Image.open("images/info.png").resize((X_SIZE//30,X_SIZE//30),Image.ANTIALIAS))
+        self.phase='deal'
+
+    def get_equiv_classes(self):
+        equiv_classes_dict={SOUTH:{},WEST:{},EAST:{}}
+        for hand_key in [SOUTH,WEST,EAST]:
+            equiv_class=[self.games[self.current_game].hands['real'][hand_key].cards[0]]
+            curr_index=1
+            while curr_index<len(self.games[self.current_game].hands['real'][hand_key].cards):
+                curr_card=self.games[self.current_game].hands['real'][hand_key].cards[curr_index]
+                if curr_card.suit==equiv_class[-1].suit and curr_card.kind==equiv_class[-1].kind+1:
+                    equiv_class.append(curr_card)
+                else:
+                    for card in equiv_class:
+                        equiv_classes_dict[hand_key][card]=equiv_class
+                    equiv_class=[curr_card]
+                curr_index+=1
+            for card in equiv_class:
+                equiv_classes_dict[hand_key][card]=equiv_class
+        return equiv_classes_dict
+
+    def random_deal(self):
+        cards_to_deal=[card for card in CARDS.values() if card not in self.games[self.current_game].hands['real'][SOUTH].cards and card not in self.games[self.current_game].hands['real'][WEST].cards and card not in self.games[self.current_game].hands['real'][EAST].cards]
+        cards_to_deal=np.random.permutation(cards_to_deal)
+        for card in cards_to_deal:
+            if len(self.games[self.current_game].hands['real'][SOUTH].cards)<10:
+                self.action(card=card)
+            elif len(self.games[self.current_game].hands['real'][WEST].cards)<10:
+                self.action(card=card)
+            elif len(self.games[self.current_game].hands['real'][EAST].cards)<10:
+                self.action(card=card)
+
+    def draw_players(self):
+        frame=tk.Frame(self.root,bg=BACKGROUND_COLOR,bd=0,height=1.4*CARD_Y_SIZE+2*BORDER_THICKNESS,width=9*CARD_STEP_X+CARD_X_SIZE+2*BORDER_THICKNESS)
+        frame.place(relx=0.5,rely=0.83,anchor='center')
+        container=tk.Frame(frame,bg=BACKGROUND_COLOR,highlightbackground='#78b1e8' if self.games[self.current_game].hands['real'][SOUTH].highlight else 'white',highlightthickness=BORDER_THICKNESS,height=CARD_Y_SIZE+2*BORDER_THICKNESS,width=9*CARD_STEP_X+CARD_X_SIZE+2*BORDER_THICKNESS)
+        container.place(x=0,y=0)
+        for i,card in enumerate(sorted(self.games[self.current_game].hands['real'][SOUTH].cards)):
+            button=tk.Button(container,image=self.images[card.highlight][card.to_string],borderwidth=0,highlightthickness=0,pady=0,padx=0,command=partial(self.action,card=card))
+            button.place(x=i*CARD_STEP_X-BORDER_THICKNESS//2,y=-BORDER_THICKNESS//2)
+            if not self.games[self.current_game].hands['real'][SOUTH].highlight or card.highlight=='disabled':
+                button["state"]='disabled'
+        Label(frame,text='SOUTH',fg='#78b1e8' if self.games[self.current_game].hands['real'][SOUTH].highlight else 'white',bg=BACKGROUND_COLOR).place(relx=0.5,rely=0.86,anchor='center')
+        frame=tk.Frame(self.root,bg=BACKGROUND_COLOR,bd=0,height=9*CARD_STEP_Y+CARD_Y_SIZE+2*BORDER_THICKNESS+0.3*CARD_Y_SIZE,width=CARD_X_SIZE+2*BORDER_THICKNESS)
+        frame.place(relx=0.14,rely=0.49,anchor='center')
+        container=tk.Frame(frame,bg=BACKGROUND_COLOR,highlightbackground='#78b1e8' if self.games[self.current_game].hands['real'][WEST].highlight else 'white',highlightthickness=BORDER_THICKNESS,height=9*CARD_STEP_Y+CARD_Y_SIZE+2*BORDER_THICKNESS,width=CARD_X_SIZE+2*BORDER_THICKNESS)
+        container.place(x=0,y=0)
+        for i,card in enumerate(sorted(self.games[self.current_game].hands['real'][WEST].cards)):
+            button=tk.Button(container,image=self.images[card.highlight][card.to_string],highlightthickness=0,borderwidth=0,pady=0,padx=0,command=partial(self.action,card=card))
+            button.place(x=-BORDER_THICKNESS//4,y=i*CARD_STEP_Y-BORDER_THICKNESS//4)
+            if not self.games[self.current_game].hands['real'][WEST].highlight or card.highlight=='disabled':
+                button["state"]='disabled'
+        Label(frame,text='WEST',fg='#78b1e8' if self.games[self.current_game].hands['real'][WEST].highlight else 'white',bg=BACKGROUND_COLOR).place(relx=0.5,rely=0.975,anchor='center')
+        frame=tk.Frame(self.root,bg=BACKGROUND_COLOR,bd=0,height=9*CARD_STEP_Y+CARD_Y_SIZE+2*BORDER_THICKNESS+0.3*CARD_Y_SIZE,width=CARD_X_SIZE+2*BORDER_THICKNESS)
+        frame.place(relx=0.86,rely=0.49,anchor='center')
+        container=tk.Frame(frame,bg=BACKGROUND_COLOR,highlightbackground='#78b1e8' if self.games[self.current_game].hands['real'][EAST].highlight else 'white',highlightthickness=BORDER_THICKNESS,height=9*CARD_STEP_Y+CARD_Y_SIZE+2*BORDER_THICKNESS,width=CARD_X_SIZE+2*BORDER_THICKNESS)
+        container.place(relx=0,rely=0)
+        for i,card in enumerate(sorted(self.games[self.current_game].hands['real'][EAST].cards)):
+            button=tk.Button(container,image=self.images[card.highlight][card.to_string],borderwidth=0,highlightthickness=0,pady=0,padx=0,command=partial(self.action,card=card))
+            button.place(x=-BORDER_THICKNESS//4,y=i*CARD_STEP_Y-BORDER_THICKNESS//4)
+            if not self.games[self.current_game].hands['real'][EAST].highlight or card.highlight=='disabled':
+                button["state"]='disabled'
+        Label(frame,text='EAST',fg='#78b1e8' if self.games[self.current_game].hands['real'][EAST].highlight else 'white',bg=BACKGROUND_COLOR).place(relx=0.5,rely=0.975,anchor='center')
+
+    def transition_phase(self):
+        if self.phase=='deal':
+            self.phase='setup'
+        elif self.phase=='setup':
+            self.phase='solve'
+        elif self.phase=='solve':
+            self.phase='play'
+        elif self.phase=='play':
+            self.phase='conclude'
+        self.action()
     
+    def undo_action(self):
+        self.current_game-=1
+        self.action()
 
-def highlight(optimal_cards,flop):
-    for key,card_button in card_buttons[(game_params['turn']+1)%3].items():
-        card_button.config(image=images[key])
-        card_button["state"]="disabled"
-    for key,card_button in card_buttons[(game_params['turn']+2)%3].items():
-        card_button.config(image=images[key])
-        card_button["state"]="disabled"
-    for key,card_button in card_buttons[game_params['turn']].items():
-        card_button.config(image=images_inactive[key])
-        card_button["state"]="disabled"
-    for card in game_params['hands'][game_params['turn']].options(flop,all=True):
-        if card.to_string in [card.to_string for card in optimal_cards] and card.to_string not in history[game_params['turn']]:
-            card_buttons[game_params['turn']][card.to_string].config(image=images_optimal[card.to_string])
-        else:
-            card_buttons[game_params['turn']][card.to_string].config(image=images[card.to_string])
-        card_buttons[game_params['turn']][card.to_string]["state"]="normal"
+    def redo_action(self):
+        self.current_game+=1
+        self.action()
 
-def play_setup():
-    start_button.destroy()
-    info_message_container.destroy()
-    global trick_containers,tricks,card_key,history,hand_info_canvases,hand_info_texts,current_tricks
-    south_card_container=tk.Frame(root,bg=BACKGROUND_COLOR,highlightbackground='white',highlightthickness=BORDER_THICKNESS,height=CARD_Y_SIZE+2*BORDER_THICKNESS,width=CARD_X_SIZE+2*BORDER_THICKNESS)
-    south_card_container.place(relx=0.5,rely=0.45,anchor='center')
-    south_card=tk.Label(south_card_container,width=CARD_X_SIZE,height=CARD_Y_SIZE,bg=BACKGROUND_COLOR)
-    south_card.place(x=0,y=0,width=CARD_X_SIZE,height=CARD_Y_SIZE)
-    west_card_container=tk.Frame(root,bg=BACKGROUND_COLOR,highlightbackground='white',highlightthickness=BORDER_THICKNESS,height=CARD_Y_SIZE+2*BORDER_THICKNESS,width=CARD_X_SIZE+2*BORDER_THICKNESS)
-    west_card_container.place(relx=0.5-CARD_X_SIZE/(2*X_SIZE)-3*BORDER_THICKNESS/X_SIZE,rely=0.45-CARD_Y_SIZE/Y_SIZE-6*BORDER_THICKNESS/Y_SIZE,anchor='center')
-    west_card=tk.Label(west_card_container,width=CARD_X_SIZE,height=CARD_Y_SIZE,bg=BACKGROUND_COLOR)
-    west_card.place(x=0,y=0,width=CARD_X_SIZE,height=CARD_Y_SIZE)
-    east_card_container=tk.Frame(root,bg=BACKGROUND_COLOR,highlightbackground='white',highlightthickness=BORDER_THICKNESS,height=CARD_Y_SIZE+2*BORDER_THICKNESS,width=CARD_X_SIZE+2*BORDER_THICKNESS)
-    east_card_container.place(relx=0.5+CARD_X_SIZE/(2*X_SIZE)+3*BORDER_THICKNESS/X_SIZE,rely=0.45-CARD_Y_SIZE/Y_SIZE-6*BORDER_THICKNESS/Y_SIZE,anchor='center')
-    east_card=tk.Label(east_card_container,bg=BACKGROUND_COLOR)
-    east_card.place(x=0,y=0,width=CARD_X_SIZE,height=CARD_Y_SIZE)
-    trick_containers=[south_card,west_card,east_card]
-    key_string=' '.join([hand.to_string() for hand in game_params['hands']])+f' {game_params["turn"]}'
-    history={0:[],1:[],2:[],'num_tricks':[solution[key_string]['num_tricks']]}
-    optimal_num_tricks=solution[key_string]['num_tricks']
-    optimal_cards=[]
-    for card in game_params['hands'][game_params['turn']].options(game_params['hands'][3].cards[0],all=True):
-        for equiv_class in classes[game_params['turn']]:
-            if card in equiv_class:
-                current_equivalence_class=equiv_class
-        for card in current_equivalence_class:
-            local_hand=Hand(virtual_hands[game_params['turn']].cards)
-            local_flop=Hand(virtual_hands[3].cards)
-            _,new_turn=local_hand.play_card(card,game_params['turn'],local_flop)
-            key_string=' '.join([hand.to_string() for hand in virtual_hands[:game_params['turn']]+[local_hand]+virtual_hands[game_params['turn']+1:-1]+[local_flop]])+f' {new_turn}'
-            if key_string in solution and solution[key_string]['num_tricks'][game_params['player']]==optimal_num_tricks[game_params['player']]:
-                for card in current_equivalence_class:
-                    optimal_cards.append(card)
-    highlight(optimal_cards,game_params['hands'][3].cards[0])
-    canvas_west=tk.Canvas(root,width=CARD_STEP_X,height=CARD_STEP_Y*9+CARD_STEP_Y,bg=BACKGROUND_COLOR,bd=0,highlightthickness=0)
-    west_info=canvas_west.create_text(CARD_STEP_X//1.3,CARD_STEP_Y*9//2+CARD_STEP_Y//2,angle=90,text=f"current/projected: 0/{optimal_num_tricks[1]}",fill="white",font=tkf.Font(family="Garamond",size=CURRENT_PROJECTED_FONT_SIZE),anchor='s',justify=tk.CENTER)
-    canvas_west.place(relx=0.205,rely=0.47,anchor='center')
-    canvas_east=tk.Canvas(root,width=CARD_STEP_X,height=CARD_STEP_Y*9+CARD_STEP_Y,bg=BACKGROUND_COLOR,bd=0,highlightthickness=0)
-    east_info=canvas_east.create_text(CARD_STEP_X,CARD_STEP_Y*9//2+CARD_STEP_Y//2,angle=90,text=f"current/projected: 0/{optimal_num_tricks[2]}",fill="white",font=tkf.Font(family="Garamond",size=CURRENT_PROJECTED_FONT_SIZE),anchor='s',justify=tk.CENTER)
-    canvas_east.place(relx=0.79,rely=0.47,anchor='center')
-    canvas_south=tk.Canvas(root,width=CARD_STEP_Y*9+CARD_STEP_Y,height=CARD_STEP_X,bg=BACKGROUND_COLOR,bd=0,highlightthickness=0)
-    south_info=canvas_south.create_text(CARD_STEP_Y*9//2+CARD_STEP_Y//2,CARD_STEP_X//1.3,angle=0,text=f"current/projected: 0/{optimal_num_tricks[0]}",fill="white",font=tkf.Font(family="Garamond",size=CURRENT_PROJECTED_FONT_SIZE),anchor='s',justify=tk.CENTER)
-    canvas_south.place(relx=0.5,rely=0.68,anchor='center')
-    hand_info_texts=[south_info,west_info,east_info]
-    hand_info_canvases=[canvas_south,canvas_west,canvas_east]
-    current_tricks=[0,0,0]
+    def quit(self):
+        self.root.destroy()
 
-def erase_tricks(cards,flop):
-    for trick_container in trick_containers:
-        trick_container.config(image='')
-    highlight(cards,flop)
-    continue_button.destroy()
+    def flush(self):
+        self.games=self.games[:self.current_game+1]
+        self.games.append(Game(self.games[self.current_game]))
+        self.current_game+=1
+        new_tricks=self.games[self.current_game].flush()
+        self.games[self.current_game].past_tricks=[past+new for past,new in zip(self.games[self.current_game].past_tricks,new_tricks)]
+        if sum([len(self.games[self.current_game].hands['real'][hand_key].cards) for hand_key in [SOUTH,WEST,EAST]])==0:
+            self.transition_phase()
+        self.action()
+    
+    def show_info(self,*args):
+        for widget in self.root.winfo_children():
+            if '!toplevel' in str(widget):
+                return
+        contract_interpreter={'M':'MISERE','P':'PLAY'}
+        player_interpreter={0:'SOUTH',1:'WEST',2:'EAST'}
+        suits_interpreter={0:'SPADES',1:'DIAMONDS',2:'CLUBS',3:'HEARTS','-':'NONE'}
+        info_window=tk.Toplevel(self.root)
+        info_window.geometry(f"{int(X_SIZE//2.7)}x{X_SIZE//5}")
+        info_window.title("Game info")
+        frame=tk.Frame(info_window,bd=0,bg='pink3')
+        frame.pack(fill='both',side=tk.TOP,expand=True)
+        Label(frame,anchor='w',text=f' CONTRACT TYPE:',bg='pink3',fg='white').pack(fill='both',side=tk.LEFT,expand=True,ipady=MESSAGE_FONT//6)
+        Label(frame,anchor='e',text=f'{contract_interpreter[self.games[self.current_game].params["type"]]} ',bg='pink3',font=tkf.Font(family="Garamond",size=MESSAGE_FONT),fg='white').pack(fill='both',side=tk.RIGHT,expand=True,ipady=MESSAGE_FONT//6)
+        frame=tk.Frame(info_window,bd=0,bg='white')
+        frame.pack(fill='both',side=tk.TOP,expand=True)
+        Label(frame,anchor='w',text=f' PLAYING HAND:',bg='white',fg='pink3').pack(fill='both',side=tk.LEFT,expand=True,ipady=MESSAGE_FONT//6)
+        Label(frame,anchor='e',text=f'{player_interpreter[self.games[self.current_game].params["player"]]} ',bg='white',font=tkf.Font(family="Garamond",size=MESSAGE_FONT),fg='pink3').pack(fill='both',side=tk.RIGHT,expand=True,ipady=MESSAGE_FONT//6)
+        frame=tk.Frame(info_window,bd=0,bg='pink3')
+        frame.pack(fill='both',side=tk.TOP,expand=True)
+        Label(frame,anchor='w',text=f' FIRST HAND:',bg='pink3',fg='white').pack(fill='both',side=tk.LEFT,expand=True,ipady=MESSAGE_FONT//6)
+        Label(frame,anchor='e',text=f'{player_interpreter[self.games[0].params["turn"]]} ',bg='pink3',fg='white').pack(fill='both',side=tk.RIGHT,expand=True,ipady=MESSAGE_FONT//6)
+        frame=tk.Frame(info_window,bd=0,bg='white')
+        frame.pack(fill='both',side=tk.TOP,expand=True)
+        Label(frame,anchor='w',text=f' TRUMP SUIT:',bg='white',fg='pink3').pack(fill='both',side=tk.LEFT,expand=True,ipady=MESSAGE_FONT//6)
+        Label(frame,anchor='e',text=f'{suits_interpreter[self.games[self.current_game].params["trumps"]]} ',bg='white',fg='pink3').pack(fill='both',side=tk.RIGHT,expand=True,ipady=MESSAGE_FONT//6)
+        info_window.mainloop()
 
-def solve():
-    for widget in set_up_container.winfo_children():
-        widget.destroy()
-    set_up_container.destroy()
-    global info_message_container,info_message,start_button,solution,classes,virtual_hands
-    info_message_container=tk.Label(root,bd=0,font=tkf.Font(family="Garamond",size=44),fg='white',bg=BACKGROUND_COLOR)
-    info_message=tk.StringVar(info_message_container,"Solution in progress...")
-    info_message_container.config(textvariable=info_message)
-    info_message_container.place(relx=0.5,rely=0.15,anchor='center')
-    root.update()
-    game_params['hands'],solution,info=solve_dp(game_params)
-    virtual_hands=[Hand(hand.cards) for hand in game_params['hands']]
-    classes=[equivalence_classes(hand) for hand in game_params['hands'][:3]]
-    info_message_container.config(font=tkf.Font(family="Garamond",size=INFO_MESSAGE_FONT_SIZE))
-    info_message.set(f"Solved {info['subgames']:,} subgames in {info['time']:.0f} sec(s)")
-    start_button=tk.Button(root,text='START',borderwidth=0,bg='white',font=tkf.Font(family="Garamond",size=START_BUTTON_FONT_SIZE),fg=BACKGROUND_COLOR,highlightthickness=0,command=play_setup)
-    start_button.place(relx=0.5,rely=0.24,anchor='center')
-
-def process_selection(param,val):
-    if param=='type':
-        for button in params_buttons[param].values():
-            button.config(bg='white',fg=BACKGROUND_COLOR)
-        params_buttons[param][val].config(bg='pink3',fg='white')
-        if val=='M':
-            process_selection('major_suit','-')
-            for key,button in params_buttons['major_suit'].items():
-                if key!='-':
-                    button["state"]="disabled"
-        else:
-            for button in params_buttons['major_suit'].values():
-                button["state"]="normal"
-    if param=='player':
-        for button in params_buttons[param].values():
-            button.config(bg='white',fg=BACKGROUND_COLOR)
-        params_buttons[param][val].config(bg='pink3',fg='white')
-    if param=='turn':
-        for button in params_buttons[param].values():
-            button.config(bg='white',fg=BACKGROUND_COLOR)
-        params_buttons[param][val].config(bg='pink3',fg='white')
-    if param=='major_suit':
-        for key,button in params_buttons[param].items():
-            if key!='-':
-                button.config(bg='white',image=suit_imgs[key])
+    def action(self,**kwargs):
+        if self.phase=='deal':
+            if 'card' in kwargs:
+                self.games=self.games[:self.current_game+1]
+                self.games.append(Game(self.games[self.current_game]))
+                self.current_game+=1
+                if len(self.games[self.current_game].hands['real'][SOUTH].cards)<10:
+                    self.games[self.current_game].hands['real'][SOUTH].add(kwargs['card'])
+                    self.games[self.current_game].hands['virtual'][SOUTH].add(kwargs['card'])
+                elif len(self.games[self.current_game].hands['real'][WEST].cards)<10:
+                    self.games[self.current_game].hands['real'][WEST].add(kwargs['card'])
+                    self.games[self.current_game].hands['virtual'][WEST].add(kwargs['card'])
+                elif len(self.games[self.current_game].hands['real'][EAST].cards)<10:
+                    self.games[self.current_game].hands['real'][EAST].add(kwargs['card'])
+                    self.games[self.current_game].hands['virtual'][EAST].add(kwargs['card'])
+            if len(self.games[self.current_game].hands['real'][SOUTH].cards)+len(self.games[self.current_game].hands['real'][WEST].cards)+len(self.games[self.current_game].hands['real'][EAST].cards)==30:
+                self.equivalence_classes=self.get_equiv_classes()
+                self.games=[self.games[self.current_game]]
+                self.current_game=0
+                self.transition_phase()
+        elif self.phase=='setup':
+            if 'param' in kwargs:
+                self.games[self.current_game].params[kwargs['param']]=kwargs['val']
+                if self.games[self.current_game].params['type']=='M':
+                    self.games[self.current_game].params['trumps']='-'
+        elif self.phase=='solve':
+            self.draw()
+            self.root.update()
+            self.solution=solve_dp(self.games[self.current_game])
+        elif self.phase=='play':
+            if 'card' in kwargs:
+                self.games=self.games[:self.current_game+1]
+                self.games.append(Game(self.games[self.current_game]))
+                self.current_game+=1
+                for virtual_card in self.equivalence_classes[self.games[self.current_game].params['turn']][kwargs['card']]:
+                    virtual_game=Game(self.games[self.current_game])
+                    virtual_game.hands['real'][TRICK].auto_flush=True
+                    virtual_game.hands['virtual'][TRICK].auto_flush=True
+                    virtual_game.play_card({'real':kwargs['card'],'virtual':virtual_card})
+                    if virtual_game.to_string(mode='virtual') in self.solution['solution']:
+                        break
+                new_tricks=self.games[self.current_game].play_card({'real':kwargs['card'],'virtual':virtual_card})
+                self.games[self.current_game].past_tricks=[past+new for past,new in zip(self.games[self.current_game]. past_tricks,new_tricks)]
+            if len(self.games[self.current_game].hands['real'][TRICK].cards)<3:
+                optimal_tricks=self.solution['solution'][self.games[self.current_game].to_string(mode='virtual')]['num_tricks']
+                self.games[self.current_game].future_tricks=optimal_tricks
+                for card in CARDS.values():
+                    card.highlight='normal'
+                for card in self.games[self.current_game].hands['real'][self.games[self.current_game].params['turn']].cards:
+                    if card in self.games[self.current_game].hands['real'][self.games[self.current_game].params['turn']].options(self.games[self.current_game].hands['real'][TRICK],all=True):
+                        for virtual_card in set(self.equivalence_classes[self.games[self.current_game].params['turn']][card]).intersection(set(self.games[self.current_game].hands['virtual'][self.games[self.current_game].params['turn']].cards)):
+                            virtual_game=Game(self.games[self.current_game])
+                            virtual_game.hands['real'][TRICK].auto_flush=True
+                            virtual_game.hands['virtual'][TRICK].auto_flush=True
+                            virtual_new_tricks=virtual_game.play_card({'real':card,'virtual':virtual_card})
+                            if len(virtual_game.hands['real'][TRICK].cards)==3:
+                                virtual_new_tricks=virtual_game.flush()
+                            if virtual_game.to_string(mode='virtual') in self.solution['solution']:
+                                potential_tricks=self.solution['solution'][virtual_game.to_string(mode='virtual')]['num_tricks']
+                                break
+                        if potential_tricks[self.games[self.current_game].params['player']]+virtual_new_tricks[self.games[self.current_game].params['player']]==optimal_tricks[self.games[self.current_game].params['player']]:
+                            card.highlight='optimal'
+                    else:
+                        card.highlight='disabled'
             else:
-                button.config(bg='white',fg=BACKGROUND_COLOR)
-        if val!='-':
-            params_buttons[param][val].config(bg='pink3',image=suit_imgs[f'{val}-white'])
-        else:
-            params_buttons[param][val].config(bg='pink3',fg='white')
-    game_params[param]=val
-    if 'type' in game_params and 'major_suit' in game_params and 'player' in game_params and 'turn' in game_params:
-        accept_setup()
+                for card in CARDS.values():
+                    card.highlight='disabled'
+            for hand_key in [SOUTH,WEST,EAST]:
+                self.games[self.current_game].hands['real'][hand_key].highlight=self.games[self.current_game].params['turn']==hand_key and len(self.games[self.current_game].hands['real'][TRICK].cards)<3
+        self.draw()
 
-def type_setup():
-    type_question_message=tk.Label(set_up_container,text="Contract type:",bd=0,bg=BACKGROUND_COLOR,font=tkf.Font(family="Garamond",size=LABEL_FONT_SIZE),fg='white')
-    type_question_message.grid(row=0,columnspan=6,sticky=tk.W)
-    button_play=osButton(set_up_container,borderless=True,bg='white',text="PLAY",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'type','P'))
-    button_play.grid(row=1,column=0,columnspan=3,sticky=tk.NSEW)
-    button_misere=osButton(set_up_container,borderless=True,bg='white',text="MISERE",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'type','M'))
-    button_misere.grid(row=1,column=3,columnspan=3,sticky=tk.NSEW)
-    params_buttons['type']={'P':button_play,'M':button_misere}
+    def draw(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+            del widget
+        if self.phase=='deal':
+            self.draw_players()
+            if len(self.games[self.current_game].hands['real'][SOUTH].cards)<10:
+                message=f'SELECT {10-len(self.games[self.current_game].hands["real"][SOUTH].cards)} CARDS FOR SOUTH'
+            elif len(self.games[self.current_game].hands['real'][WEST].cards)<10:
+                message=f'SELECT {10-len(self.games[self.current_game].hands["real"][WEST].cards)} CARDS FOR WEST'
+            elif len(self.games[self.current_game].hands['real'][EAST].cards)<10:
+                message=f'SELECT {10-len(self.games[self.current_game].hands["real"][EAST].cards)} CARDS FOR EAST'
+            Label(self.root,text=message,fg='white',bg=BACKGROUND_COLOR).place(relx=0.5,rely=0.14,anchor='center')
+            container=tk.Frame(self.root,bg=BACKGROUND_COLOR,bd=0,height=2.16*CARD_Y_SIZE,width=15*CARD_STEP_X/1.5+2.05*CARD_X_SIZE)
+            container.place(relx=0.5,rely=0.37,anchor='center')
+            for i,card in enumerate(CARDS.values()):
+                if card not in self.games[self.current_game].hands['real'][SOUTH].cards and card not in self.games[self.current_game].hands['real'][WEST].cards and card not in self.games[self.current_game].hands['real'][EAST].cards:
+                    button=tk.Button(container,image=self.images['normal'][card.to_string],borderwidth=0,bg=BACKGROUND_COLOR,highlightthickness=0,pady=0,padx=0,command=partial(self.action,card=card))
+                    button.place(x=(CARD_STEP_X/1.5)*(i%16)+CARD_X_SIZE*(i%16>7),y=(1.15*CARD_Y_SIZE)*(i>=16))
+            button=Button(self.root,text='RANDOM DEAL',fg=BACKGROUND_COLOR, bg='white',pady=0,padx=0,command=self.random_deal)
+            button.place(relx=0.5,rely=0.37+1.1*CARD_Y_SIZE/Y_SIZE+0.05,anchor='center')
+            button=Button(self.root,text='UNDO',fg=BACKGROUND_COLOR,bg='white',pady=0,padx=0,command=self.undo_action)
+            button.place(relx=0.35,rely=0.37+1.1*CARD_Y_SIZE/Y_SIZE+0.05,anchor='center')
+            if self.current_game==0:
+                button['state']='disabled'
+            button=Button(self.root,text='REDO',fg=BACKGROUND_COLOR,bg='white',pady=0,padx=0,command=self.redo_action)
+            button.place(relx=0.65,rely=0.37+1.1*CARD_Y_SIZE/Y_SIZE+0.05,anchor='center')
+            if self.current_game==len(self.games)-1:
+                button['state']='disabled'
+        if self.phase=='setup':
+            self.draw_players()
+            container=tk.Frame(self.root,bg=BACKGROUND_COLOR,bd=0,height=Y_SIZE//2,width=X_SIZE//2.5)
+            container.place(relx=0.5,rely=0.4,anchor='center')
+            container.grid_propagate(0)
+            for col in range(6):
+                container.grid_columnconfigure(col,weight=1,uniform='_')
+            Label(container,text="CONTRACT TYPE:",bg=BACKGROUND_COLOR,fg='white').grid(row=0,columnspan=6,sticky=tk.W)
+            button=Button(container,bg='white',text="PLAY",fg=BACKGROUND_COLOR,command=partial(self.action,param='type',val='P'))
+            button.grid(row=1,column=0,columnspan=3,sticky=tk.NSEW)
+            if self.games[self.current_game].params['type']=='P':
+                button.config(bg='#78b1e8',fg='white')
+            button=Button(container,bg='white',text="MISERE",fg=BACKGROUND_COLOR,command=partial(self.action,param='type',val='M'))
+            button.grid(row=1,column=3,columnspan=3,sticky=tk.NSEW)
+            if self.games[self.current_game].params['type']=='M':
+                button.config(bg='#78b1e8',fg='white')
+            Label(container,text="PLAYING HAND:",bg=BACKGROUND_COLOR,fg='white').grid(row=2,columnspan=6,sticky=tk.W)
+            button=Button(container,bg='white',text="SOUTH",fg=BACKGROUND_COLOR,command=partial(self.action,param='player',val=0))
+            button.grid(row=3,column=0,columnspan=2,sticky=tk.NSEW)
+            if self.games[self.current_game].params['player']==SOUTH:
+                button.config(bg='#78b1e8',fg='white')
+            button=Button(container,bg='white',text="WEST",fg=BACKGROUND_COLOR,command=partial(self.action,param='player',val=1))
+            button.grid(row=3,column=2,columnspan=2,sticky=tk.NSEW)
+            if self.games[self.current_game].params['player']==WEST:
+                button.config(bg='#78b1e8',fg='white')
+            button=Button(container,bg='white',text="EAST",fg=BACKGROUND_COLOR,command=partial(self.action,param='player',val=2))
+            button.grid(row=3,column=4,columnspan=2,sticky=tk.NSEW)
+            if self.games[self.current_game].params['player']==EAST:
+                button.config(bg='#78b1e8',fg='white')
+            Label(container,text="FIRST HAND:",bg=BACKGROUND_COLOR,fg='white').grid(row=4,columnspan=6,sticky=tk.W)
+            button=Button(container,bg='white',text="SOUTH",fg=BACKGROUND_COLOR,command=partial(self.action,param='turn',val=0))
+            button.grid(row=5,columnspan=2,column=0,sticky=tk.NSEW)
+            if self.games[self.current_game].params['turn']==SOUTH:
+                button.config(bg='#78b1e8',fg='white')
+            button=Button(container,bg='white',text="WEST",fg=BACKGROUND_COLOR,command=partial(self.action,param='turn',val=1))
+            button.grid(row=5,columnspan=2,column=2,sticky=tk.NSEW)
+            if self.games[self.current_game].params['turn']==WEST:
+                button.config(bg='#78b1e8',fg='white')
+            button=Button(container,bg='white',text="EAST",fg=BACKGROUND_COLOR,command=partial(self.action,param='turn',val=2))
+            button.grid(row=5,columnspan=2,column=4,sticky=tk.NSEW)
+            if self.games[self.current_game].params['turn']==EAST:
+                button.config(bg='#78b1e8',fg='white')
+            Label(container,text="TRUMP SUIT:",bg=BACKGROUND_COLOR,fg='white').grid(row=6,columnspan=6,sticky=tk.W)
+            button=Button(container,bg='white',image=self.images['utils']['Sb'],fg=BACKGROUND_COLOR,command=partial(self.action,param='trumps',val=SUITS_TO_CODE['S']))
+            button.grid(row=7,column=0,sticky=tk.NSEW)
+            if self.games[self.current_game].params['trumps']==SUITS_TO_CODE['S']:
+                button.config(bg='#78b1e8',image=self.images['utils']['Sw'])
+            if self.games[self.current_game].params['type']=='M':
+                button["state"]="disabled"
+            button=Button(container,bg='white',image=self.images['utils']['Cb'],fg=BACKGROUND_COLOR,command=partial(self.action,param='trumps',val=SUITS_TO_CODE['C']))
+            button.grid(row=7,column=1,sticky=tk.NSEW)
+            if self.games[self.current_game].params['trumps']==SUITS_TO_CODE['C']:
+                button.config(bg='#78b1e8',image=self.images['utils']['Cw'])      
+            if self.games[self.current_game].params['type']=='M':
+                button["state"]="disabled"
+            button=Button(container,bg='white',image=self.images['utils']['Db'],fg=BACKGROUND_COLOR,command=partial(self.action,param='trumps',val=SUITS_TO_CODE['D']))
+            button.grid(row=7,column=2,sticky=tk.NSEW)
+            if self.games[self.current_game].params['trumps']==SUITS_TO_CODE['D']:
+                button.config(bg='#78b1e8',image=self.images['utils']['Dw']) 
+            if self.games[self.current_game].params['type']=='M':
+                button["state"]="disabled"
+            button=Button(container,bg='white',image=self.images['utils']['Hb'],fg=BACKGROUND_COLOR,command=partial(self.action,param='trumps',val=SUITS_TO_CODE['H']))
+            button.grid(row=7,column=3,sticky=tk.NSEW)
+            if self.games[self.current_game].params['trumps']==SUITS_TO_CODE['H']:
+                button.config(bg='#78b1e8',image=self.images['utils']['Hw']) 
+            if self.games[self.current_game].params['type']=='M':
+                button["state"]='disabled'
+            button=Button(container,bg='white',text='NONE',fg=BACKGROUND_COLOR,command=partial(self.action,param='trumps',val='-'))
+            button.grid(row=7,column=4,columnspan=2,sticky=tk.NSEW)
+            if self.games[self.current_game].params['trumps']=='-':
+                button.config(bg='#78b1e8',fg='white')
+            if all([param is not None for param in list(self.games[self.current_game].params.values())]):
+                frame=tk.Frame(container,bd=0,height=Y_SIZE//20,width=X_SIZE//2.5,bg=BACKGROUND_COLOR)
+                frame.grid(row=8,column=0,columnspan=6,sticky=tk.W)
+                button=Button(container,text='OK',bg='white',fg=BACKGROUND_COLOR,command=self.transition_phase)
+                button.grid(row=9,column=2,columnspan=2,sticky=tk.NSEW)
+        elif self.phase=='solve':
+            self.draw_players()
+            if self.solution is None:
+                Label(self.root,text="SOLUTION IN PROGRESS...",bg=BACKGROUND_COLOR,fg='white').place(relx=0.5,rely=0.15,anchor='center')
+            else:
+                Label(self.root,text=f'SOLVED {self.solution["info"]["subgames"]:,} SUBGAMES IN {self.solution["info"]["time"]:.0f} SEC(S)',bg=BACKGROUND_COLOR,fg='white').place(relx=0.5,rely=0.15,anchor='center')
+                Button(self.root,text='START',bg='white',fg=BACKGROUND_COLOR,command=self.transition_phase).place(relx=0.5,rely=0.24,anchor='center')
+        elif self.phase=='play':
+            self.draw_players()
+            frame=tk.Frame(self.root,bg=BACKGROUND_COLOR,highlightbackground='white',highlightthickness=BORDER_THICKNESS,height=CARD_Y_SIZE+2*BORDER_THICKNESS,width=CARD_X_SIZE+2*BORDER_THICKNESS)
+            frame.place(relx=0.5,rely=0.45,anchor='center')
+            container=Label(frame,width=CARD_X_SIZE,height=CARD_Y_SIZE,bg=BACKGROUND_COLOR)
+            container.place(x=0,y=0,width=CARD_X_SIZE,height=CARD_Y_SIZE)
+            for card in self.games[self.current_game].hands['real'][TRICK].cards:
+                if card in self.games[0].hands['real'][SOUTH].cards:
+                    container.config(image=self.images['normal'][card.to_string])
+            canvas=tk.Canvas(self.root,width=CARD_STEP_Y*9+CARD_STEP_Y,height=CARD_STEP_X,bg=BACKGROUND_COLOR,bd=0,highlightthickness=0)
+            canvas.place(relx=0.5,rely=0.68,anchor='center')
+            current_tricks=self.games[self.current_game].past_tricks[SOUTH]
+            total_tricks=self.games[self.current_game].future_tricks[SOUTH]
+            canvas.create_text(CARD_STEP_Y*9//2+CARD_STEP_Y//2,CARD_STEP_X//1.3,angle=0,text=f"current/projected: {current_tricks}/{current_tricks+total_tricks}",fill='#78b1e8' if self.games[self.current_game].hands['real'][SOUTH].highlight else 'white',font=tkf.Font(family="Garamond",size=MESSAGE_FONT),anchor='s',justify=tk.CENTER)
+            frame=tk.Frame(self.root,bg=BACKGROUND_COLOR,highlightbackground='white',highlightthickness=BORDER_THICKNESS,height=CARD_Y_SIZE+2*BORDER_THICKNESS,width=CARD_X_SIZE+2*BORDER_THICKNESS)
+            frame.place(relx=0.5-CARD_X_SIZE/(2*X_SIZE)-3*BORDER_THICKNESS/X_SIZE,rely=0.45-CARD_Y_SIZE/Y_SIZE-6*BORDER_THICKNESS/Y_SIZE,anchor='center')
+            container=Label(frame,width=CARD_X_SIZE,height=CARD_Y_SIZE,bg=BACKGROUND_COLOR)
+            container.place(x=0,y=0,width=CARD_X_SIZE,height=CARD_Y_SIZE)
+            for card in self.games[self.current_game].hands['real'][TRICK].cards:
+                if card in self.games[0].hands['real'][WEST].cards:
+                    container.config(image=self.images['normal'][card.to_string])        
+            canvas=tk.Canvas(self.root,width=CARD_STEP_X,height=CARD_STEP_Y*9+CARD_STEP_Y,bg=BACKGROUND_COLOR,bd=0,highlightthickness=0)
+            canvas.place(relx=0.205,rely=0.47,anchor='center')
+            current_tricks=self.games[self.current_game].past_tricks[WEST]
+            total_tricks=self.games[self.current_game].future_tricks[WEST]
+            canvas.create_text(CARD_STEP_X//1.3,CARD_STEP_Y*9//2+CARD_STEP_Y//2,angle=90,text=f"current/projected: {current_tricks}/{current_tricks+total_tricks}",fill='#78b1e8' if self.games[self.current_game].hands['real'][WEST].highlight else 'white',font=tkf.Font(family="Garamond",size=MESSAGE_FONT),anchor='s',justify=tk.CENTER)
+            frame=tk.Frame(self.root,bg=BACKGROUND_COLOR,highlightbackground='white',highlightthickness=BORDER_THICKNESS,height=CARD_Y_SIZE+2*BORDER_THICKNESS,width=CARD_X_SIZE+2*BORDER_THICKNESS)
+            frame.place(relx=0.5+CARD_X_SIZE/(2*X_SIZE)+3*BORDER_THICKNESS/X_SIZE,rely=0.45-CARD_Y_SIZE/Y_SIZE-6*BORDER_THICKNESS/Y_SIZE,anchor='center')
+            container=Label(frame,bg=BACKGROUND_COLOR)
+            container.place(x=0,y=0,width=CARD_X_SIZE,height=CARD_Y_SIZE)
+            for card in self.games[self.current_game].hands['real'][TRICK].cards:
+                if card in self.games[0].hands['real'][EAST].cards:
+                    container.config(image=self.images['normal'][card.to_string])
+            canvas=tk.Canvas(self.root,width=CARD_STEP_X,height=CARD_STEP_Y*9+CARD_STEP_Y,bg=BACKGROUND_COLOR,bd=0,highlightthickness=0)
+            canvas.place(relx=0.79,rely=0.47,anchor='center')
+            current_tricks=self.games[self.current_game].past_tricks[EAST]
+            total_tricks=self.games[self.current_game].future_tricks[EAST]
+            canvas.create_text(CARD_STEP_X,CARD_STEP_Y*9//2+CARD_STEP_Y//2,angle=90,text=f"current/projected: {current_tricks}/{current_tricks+total_tricks}",fill='#78b1e8' if self.games[self.current_game].hands['real'][EAST].highlight else 'white',font=tkf.Font(family="Garamond",size=MESSAGE_FONT),anchor='s',justify=tk.CENTER)
+            button=Button(self.root,text='UNDO',bg='white',fg=BACKGROUND_COLOR,command=self.undo_action)
+            button.place(relx=0.37,rely=0.6,anchor='center')
+            if self.current_game==0:
+                button["state"]='disabled'
+            button=Button(self.root,text='REDO',bg='white',fg=BACKGROUND_COLOR,command=self.redo_action)
+            button.place(relx=0.63,rely=0.6,anchor='center')
+            if self.current_game==len(self.games)-1:
+                button["state"]='disabled'
+            if len(self.games[self.current_game].hands['real'][TRICK].cards)==3:
+                Button(self.root,text='CONTINUE',bg='white',fg=BACKGROUND_COLOR,command=self.flush).place(relx=0.5,rely=0.6,anchor='center')
+            info=Label(self.root,image=self.info_image)
+            info.bind('<Button-1>',self.show_info)
+            info.place(relx=0.96,rely=0.95,anchor='center')
+        elif self.phase=='conclude':
+            frame=tk.Frame(self.root,bg=BACKGROUND_COLOR,height=Y_SIZE//2,width=X_SIZE//2)
+            frame.place(relx=0.5,rely=0.5,anchor='center')
+            container=Label(frame,bg=BACKGROUND_COLOR)
+            container.place(x=0,y=0,height=Y_SIZE//1.9,width=X_SIZE//1.9)
+            container.grid_propagate(0)
+            container.grid_columnconfigure(0,weight=2,uniform='_')
+            for col in range(1,4):
+                container.grid_columnconfigure(col,weight=1,uniform='_')
+            Label(container,text="SOUTH",bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==SOUTH else 'white').grid(row=0,column=1,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
+            Label(container,text="WEST",bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==WEST else 'white').grid(row=0,column=2,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
+            Label(container,text="EAST",bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==EAST else 'white').grid(row=0,column=3,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
+            Label(container,text="FINAL TRICKS",bg=BACKGROUND_COLOR,fg='white').grid(row=1,column=0,sticky=tk.W,pady=MESSAGE_FONT//3)
+            Label(container,text="OPTIMAL TRICKS",bg=BACKGROUND_COLOR,fg='white').grid(row=2,column=0,sticky=tk.W,pady=MESSAGE_FONT//3)
+            Label(container,text=f"{self.games[-1].past_tricks[SOUTH]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==SOUTH else 'white').grid(row=1,column=1,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
+            Label(container,text=f"{self.games[-1].past_tricks[WEST]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==WEST else 'white').grid(row=1,column=2,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
+            Label(container,text=f"{self.games[-1].past_tricks[EAST]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==EAST else 'white').grid(row=1,column=3,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
+            Label(container,text=f"{self.solution['solution'][self.games[0].to_string(mode='virtual')]['num_tricks'][SOUTH]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==SOUTH else 'white').grid(row=2,column=1,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
+            Label(container,text=f"{self.solution['solution'][self.games[0].to_string(mode='virtual')]['num_tricks'][WEST]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==WEST else 'white').grid(row=2,column=2,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
+            Label(container,text=f"{self.solution['solution'][self.games[0].to_string(mode='virtual')]['num_tricks'][EAST]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==EAST else 'white').grid(row=2,column=3,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
+            Button(self.root,text='QUIT',bg='white',fg=BACKGROUND_COLOR,command=self.quit).place(relx=0.5,rely=0.7,anchor='center')
+            
+        
+def main():
+    root=tk.Tk()
+    root.geometry(f"{X_SIZE}x{Y_SIZE}")
+    root.configure(background=BACKGROUND_COLOR)
+    root.title("Preferans solver")
+    gui=GUI(root)
+    gui.draw()
+    root.mainloop()
 
-def player_setup():
-    player_question_message=tk.Label(set_up_container,text="Playing hand:",bd=0,bg=BACKGROUND_COLOR,font=tkf.Font(family="Garamond",size=LABEL_FONT_SIZE),fg='white')
-    player_question_message.grid(row=2,columnspan=6,sticky=tk.W)
-    button_south=osButton(set_up_container,borderless=True,bg='white',text="SOUTH",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'player',0))
-    button_south.grid(row=3,column=0,columnspan=2,sticky=tk.NSEW)
-    button_west=osButton(set_up_container,borderless=True,bg='white',text="WEST",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'player',1))
-    button_west.grid(row=3,column=2,columnspan=2,sticky=tk.NSEW)
-    button_east=osButton(set_up_container,borderless=True,bg='white',text="EAST",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'player',2))
-    button_east.grid(row=3,column=4,columnspan=2,sticky=tk.NSEW)
-    params_buttons['player']={0:button_south,1:button_west,2:button_east}
-
-def turn_setup():
-    turn_question_message=tk.Label(set_up_container,text="Short hand:",bd=0,bg=BACKGROUND_COLOR,font=tkf.Font(family="Garamond",size=LABEL_FONT_SIZE),fg='white')
-    turn_question_message.grid(row=4,columnspan=6,sticky=tk.W)
-    button_south=osButton(set_up_container,borderless=True,bg='white',text="SOUTH",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'turn',0))
-    button_south.grid(row=5,columnspan=2,column=0,sticky=tk.NSEW)
-    button_west=osButton(set_up_container,borderless=True,bg='white',text="WEST",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'turn',1))
-    button_west.grid(row=5,columnspan=2,column=2,sticky=tk.NSEW)
-    button_east=osButton(set_up_container,borderless=True,bg='white',text="EAST",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'turn',2))
-    button_east.grid(row=5,columnspan=2,column=4,sticky=tk.NSEW)
-    params_buttons['turn']={0:button_south,1:button_west,2:button_east}
-
-def major_suit_setup():
-    major_suit_question_message=tk.Label(set_up_container,text="Major suit:",bd=0,bg=BACKGROUND_COLOR,font=tkf.Font(family="Garamond",size=LABEL_FONT_SIZE),fg='white')
-    major_suit_question_message.grid(row=6,columnspan=6,sticky=tk.W)
-    button_spades=osButton(set_up_container,borderless=True,bg='white',image=suit_imgs['S'],font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','S'))
-    button_spades.grid(row=7,column=0,sticky=tk.NSEW)
-    button_clubs=osButton(set_up_container,borderless=True,bg='white',image=suit_imgs['C'],font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','C'))
-    button_clubs.grid(row=7,column=1,sticky=tk.NSEW)
-    button_diamonds=osButton(set_up_container,borderless=True,bg='white',image=suit_imgs['D'],font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','D'))
-    button_diamonds.grid(row=7,column=2,sticky=tk.NSEW)
-    button_hearts=osButton(set_up_container,borderless=True,bg='white',image=suit_imgs['H'],font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','H'))
-    button_hearts.grid(row=7,column=3,sticky=tk.NSEW)
-    button_none=osButton(set_up_container,borderless=True,bg='white',text="NONE",font=tkf.Font(family="Garamond",size=18),fg=BACKGROUND_COLOR,command=partial(process_selection,'major_suit','-'))
-    button_none.grid(row=7,column=4,columnspan=2,sticky=tk.NSEW)
-    params_buttons['major_suit']={'S':button_spades,'C':button_clubs,'D':button_diamonds,'H':button_hearts,'-':button_none}
-
-def accept_setup():
-    params_buttons['blank']=tk.Frame(set_up_container,bd=0,height=Y_SIZE//20,width=X_SIZE//2.5,bg=BACKGROUND_COLOR)
-    params_buttons['blank'].grid(row=8,column=0,columnspan=6,sticky=tk.W)
-    params_buttons['ok']=osButton(set_up_container,highlightbackground='white',highlightthickness=3,bd=0,bg='grey40',text="OK",font=tkf.Font(family="Garamond",size=18),fg='white',command=solve)
-    params_buttons['ok'].grid(row=9,column=2,columnspan=2,sticky=tk.NSEW)
-
-root=tk.Tk()
-root.geometry(f"{X_SIZE}x{Y_SIZE}")
-root.configure(background=BACKGROUND_COLOR)
-root.title("Preferans solver")
-deal_message=tk.StringVar(root,"Select 10 cards for SOUTH")
-deal_message_container=tk.Label(root,textvariable=deal_message,bd=0,font=tkf.Font(family="Garamond",size=DEAL_MESSAGE_FONT_SIZE),fg='white',bg=BACKGROUND_COLOR)
-deal_message_container.place(relx=0.5,rely=0.1,anchor='center')
-deal_cards_container=tk.Frame(root,bg=BACKGROUND_COLOR,bd=0,height=2.16*CARD_Y_SIZE,width=15*CARD_STEP_X/1.5+2.05*CARD_X_SIZE)
-deal_cards_container.place(relx=0.5,rely=0.4,anchor='center')
-south=tk.Frame(root,bg=BACKGROUND_COLOR,bd=0,height=1.4*CARD_Y_SIZE+2*BORDER_THICKNESS,width=9*CARD_STEP_X+CARD_X_SIZE+2*BORDER_THICKNESS)
-south.place(relx=0.5,rely=0.83,anchor='center')
-south_cards_container=tk.Frame(south,bg=BACKGROUND_COLOR,highlightbackground='white',highlightthickness=BORDER_THICKNESS,height=CARD_Y_SIZE+2*BORDER_THICKNESS,width=9*CARD_STEP_X+CARD_X_SIZE+2*BORDER_THICKNESS)
-south_cards_container.place(x=0,y=0)
-south_message=tk.StringVar(south,"SOUTH")
-south_message_container=tk.Label(south,textvariable=south_message,bd=0,font=tkf.Font(family="Garamond",size=22),fg='white',bg=BACKGROUND_COLOR)
-south_message_container.place(relx=0.5,rely=0.86,anchor='center')
-west=tk.Frame(root,bg=BACKGROUND_COLOR,bd=0,height=9*CARD_STEP_Y+CARD_Y_SIZE+2*BORDER_THICKNESS+0.3*CARD_Y_SIZE,width=CARD_X_SIZE+2*BORDER_THICKNESS)
-west.place(relx=0.14,rely=0.49,anchor='center')
-west_cards_container=tk.Frame(west,bg=BACKGROUND_COLOR,highlightbackground='white',highlightthickness=BORDER_THICKNESS,height=9*CARD_STEP_Y+CARD_Y_SIZE+2*BORDER_THICKNESS,width=CARD_X_SIZE+2*BORDER_THICKNESS)
-west_cards_container.place(x=0,y=0)
-west_message=tk.StringVar(west,"WEST")
-west_message_container=tk.Label(west,textvariable=west_message,bd=0,font=tkf.Font(family="Garamond",size=22),fg='white',bg=BACKGROUND_COLOR)
-west_message_container.place(relx=0.5,rely=0.975,anchor='center')
-east=tk.Frame(root,bg=BACKGROUND_COLOR,bd=0,height=9*CARD_STEP_Y+CARD_Y_SIZE+2*BORDER_THICKNESS+0.3*CARD_Y_SIZE,width=CARD_X_SIZE+2*BORDER_THICKNESS)
-east.place(relx=0.86,rely=0.49,anchor='center')
-east_cards_container=tk.Frame(east,bg=BACKGROUND_COLOR,highlightbackground='white',highlightthickness=BORDER_THICKNESS,height=9*CARD_STEP_Y+CARD_Y_SIZE+2*BORDER_THICKNESS,width=CARD_X_SIZE+2*BORDER_THICKNESS)
-east_cards_container.place(relx=0,rely=0)
-east_message=tk.StringVar(east,"EAST")
-east_message_container=tk.Label(east,textvariable=east_message,bd=0,font=tkf.Font(family="Garamond",size=22),fg='white',bg=BACKGROUND_COLOR)
-east_message_container.place(relx=0.5,rely=0.975,anchor='center')
-raw_images={card.to_string:Image.open(IMG_DIR+f"/{card.to_string.replace(':','')}.png") for key,card in CARDS.items() if '-' not in key}
-images={key:ImageTk.PhotoImage(img.resize((CARD_X_SIZE,CARD_Y_SIZE),Image.ANTIALIAS)) for key,img in raw_images.items()}
-raw_images_inactive={card.to_string:Image.open(IMG_DIR_INACTIVE+f"/{card.to_string.replace(':','')}.png") for key,card in CARDS.items() if '-' not in key}
-images_inactive={key:ImageTk.PhotoImage(img.resize((CARD_X_SIZE,CARD_Y_SIZE),Image.ANTIALIAS)) for key,img in raw_images_inactive.items()}
-raw_images_optimal={card.to_string:Image.open(IMG_DIR_OPTIMAL+f"/{card.to_string.replace(':','')}.png") for key,card in CARDS.items() if '-' not in key}
-images_optimal={key:ImageTk.PhotoImage(img.resize((CARD_X_SIZE,CARD_Y_SIZE),Image.ANTIALIAS)) for key,img in raw_images_optimal.items()}
-buttons={key:tk.Button(deal_cards_container,image=image,borderwidth=0,bg=BACKGROUND_COLOR,highlightthickness=0,pady=0,padx=0) for key,image in images.items()}
-for i,(key,button) in enumerate(buttons.items()):
-    button.config(command=partial(deal_card,key))
-    button.place(x=(CARD_STEP_X/1.5)*(i%16)+CARD_X_SIZE*(i%16>7),y=(1.15*CARD_Y_SIZE)*(i>=16))
-button_random=osButton(root,text='RANDOM DEAL',borderless=True,font=tkf.Font(family="Garamond",size=22),fg=BACKGROUND_COLOR, bg='white',highlightthickness=0,pady=0,padx=0,command=random_deal)
-button_random.place(relx=0.5,rely=0.4+1.1*CARD_Y_SIZE/Y_SIZE+0.05,anchor='center')
-south_buttons,west_buttons,east_buttons=dict(),dict(),dict()
-root.mainloop()
+if __name__=="__main__":
+    main()
