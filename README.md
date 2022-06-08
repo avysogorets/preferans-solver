@@ -1,4 +1,14 @@
 # Preferans (преферанс) solver.
+
+## Quick setup
+Follow these steps to set up virtual environment:
+```python3 -m pip install --user --upgrade pip # install pip
+python3 -m pip install --user virtualenv # install environment manager
+python3 -m venv env # create a new environment
+python3 -m pip install -r requirements.txt # install packages
+source env/bin/activate # activate the environment
+```
+
 ## Introduction
 Preferans is a Russian card game that gained its popularity in the early 19-th century. It is played with a French 32-card deck (7 to Ace) dealt for three hands of 10 cards each and a 2-card talon. In a nutshell, Preferans is a trick-taking game with the goal of fulfilling a declared contract, agreed upon by all players during the bidding stage. At this stage, players can bid to either (1) pass (2) play a game, or (3) play misere, leading to one of three types of contracts: (1) all-passes, (2) play, or (3) misere. All-passes occurs when all players pass and requires them to avoid taikng tricks, adding negative points for each trick taken. Consider other contracts in more detail:
 - *Play* is a contract where one "outstanding" player takes responsibility to take a declared number of tricks (no less than 6) under a major suit of his choice. The other players have an option to *whist*&mdash;contract themselves to take some or all of the remaining tricks. When exactly one player whists, he may choose to open up his and other player's cards (but not the *outstanding player's cards*), which is called "playing in the light". Ultimately, the outstanding player and his opponents as a whole are incentivized to take as many tricks as possible.
