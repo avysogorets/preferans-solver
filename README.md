@@ -3,7 +3,7 @@
 ## Quick setup
 Follow these steps in your terminal window to set up virtual environment:
 
-### MacOS & Linux
+#### MacOS & Linux
 ```
 python3 -m pip install --user --upgrade pip # install pip
 python3 -m pip install --user virtualenv # install environment manager
@@ -12,7 +12,7 @@ python3 -m pip install -r requirements.txt # install packages
 source env/bin/activate # activate the environment
 ```
 
-### Windows
+#### Windows
 
 ```
 py -m pip install --upgrade pip 
@@ -22,13 +22,12 @@ py -m pip install -r requirements.txt
 .\env\Scripts\activate
 ```
 
-To run the graphical application, input these commans:
+To run the graphical application, input these commands; the application window whould open:
 
 ```
 cd solver-gui
 python3 forntend.py
 ```
-
 
 ## Introduction
 Preferans is a Russian card game that gained its popularity in the early 19-th century. It is played with a French 32-card deck (7 to Ace) dealt for three hands of 10 cards each and a 2-card talon. In a nutshell, Preferans is a trick-taking game with the goal of fulfilling a declared contract, agreed upon by all players during the bidding stage. At this stage, players can bid to either (1) pass (2) play a game, or (3) play misere, leading to one of three types of contracts: (1) all-passes, (2) play, or (3) misere. All-passes occurs when all players pass and requires them to avoid taikng tricks, adding negative points for each trick taken. Consider other contracts in more detail:
@@ -39,7 +38,7 @@ The complete set of rules of Preferans is sophisticated and has a great deal of 
 
 ## The task
 
-This program is not a robot-player preconditioned to maximize returns, nor it is designed to produce optimal decisions for one of the players under incomplete information about the deal. Instead, it computes the outcome of the deal (the number of tricks taken by each player) assuming that *complete information* is available to all players (i.e., all cards open) and that they use it to *play optimally*. Optimal play is defined recursively: (1) it is optimal for a player with one card left to play it, and (2) it is optimal to play the card that leads to the most desirable outcome (according to the objective of the contract) assuming *optimal play* from the opponents. Note that we can safely assume *any play* from the opponents under this definition. In particular, if a certain move is projected to bring profit *P* assuming optimal play, it will bring at least *P* under any subsequent play from the opponents.
+This program computes the outcome of any given deal (the number of tricks taken by each player) assuming that *complete information* is available to all players (i.e., all cards open) and that they use it to *play optimally*. The optimal play is defined recursively: (1) it is optimal for a player with one card left to play it, and (2) it is optimal to play the card that leads to the most desirable outcome (according to the objective of the contract) assuming *optimal play* from the opponents. The projected objective of a player is hence a guaranteed lower bound for their final objectibve provided optimal play *regardless* of moves made by their opponents.
 
 ## Implementation
 
