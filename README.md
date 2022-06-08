@@ -2,7 +2,6 @@
 
 ## Quick setup
 Follow these steps in your terminal window to set up virtual environment:
-
 #### MacOS & Linux
 ```
 python3 -m pip install --user --upgrade pip # install pip
@@ -11,7 +10,6 @@ python3 -m venv env # create a new environment
 python3 -m pip install -r requirements.txt # install packages
 source env/bin/activate # activate the environment
 ```
-
 #### Windows
 
 ```
@@ -21,8 +19,7 @@ py -m venv env
 py -m pip install -r requirements.txt
 .\env\Scripts\activate
 ```
-
-To run the graphical application, input these commands; the application window whould open:
+To run the graphical application, input these commands; the application window should open:
 
 ```
 cd solver-gui
@@ -36,13 +33,13 @@ Preferans is a Russian card game that gained its popularity in the early 19-th c
 
 The complete set of rules of Preferans is sophisticated and has a great deal of nuances; you can read more [here](https://en.wikipedia.org/wiki/Preferans).
 
-## The task
+## This program
 
-This program computes the outcome of any given deal (the number of tricks taken by each player) assuming that *complete information* is available to all players (i.e., all cards open) and that they use it to *play optimally*. The optimal play is defined recursively: (1) it is optimal for a player with one card left to play it, and (2) it is optimal to play the card that leads to the most desirable outcome (according to the objective of the contract) assuming *optimal play* from the opponents. The projected objective of a player is hence a guaranteed lower bound for their final objectibve provided optimal play *regardless* of moves made by their opponents.
+This program computes the outcome of any given deal (the number of tricks taken by each player) assuming that *complete information* is available to all players (i.e., all cards open) and that they use it to *play optimally*. The optimal play is defined recursively: (1) it is optimal for a player with one card left to play it, and (2) it is optimal to play the card that leads to the most desirable outcome (i.e., most desirable final projected objective of the *playing hand* with respect to the contract type) assuming *optimal play* from the opponents (clearly, if one's opponents play non-optimally, the projected final objective of the playing hand can only improve from his/her perspective). For example, whisting hands wish to minimize (maximize) the final number of tricks taken by the playing hand under play (misere) regardless of the distribution of other tricks between their hands.
 
 ## Implementation
 
-The algorithm uses Depth-First-Search with memoization to efficiently process the graph of all game evolution possibilities (game states or *subgames*). Clearly, the number of nodes in this graph differs from deal to deal, however, on average, it is in order of tens of millions. This can be reduced by roughly a factor of 10 by saving recursive calls on consecutive cards; e.g., it is unnecessary to consider both A&diams; and K&diams;&mdash;the outcomes will be identical. In general, the algorithm takes anywhere from a few seconds to a few minutes to finish.
+The backend algorithm uses depth-first-search with memoization to efficiently process the graph of all game evolution possibilities (game states or *subgames*). Clearly, the number of nodes in this graph differs from deal to deal, however, on average, it is in order of tens of millions. This is reduced by roughly a factor of 10 by saving recursive calls on consecutive cards; e.g., it is unnecessary to consider both A&diams; and K&diams;&mdash; for a single move---the outcomes will be identical. In general, the algorithm takes anywhere from a few seconds to a few minutes to finish. The GUI is written using ```tkinter```.
 
 ## Example: Kovalevskaya's misere
 
@@ -51,62 +48,14 @@ For a quick demonstration, consider a well-known example&mdash;Kovalevskaya's mi
 - East: K&spades; A&spades; A&diams; 10&clubs; J&clubs; Q&clubs; 10&hearts; Q&hearts; K&hearts; A&hearts; 
 - South: J&spades; Q&spades; 10&diams; J&diams; Q&diams; K&diams; 7&clubs; 9&clubs; 7&hearts; J&hearts;
 
-North is playing misere; South is to start (turns alternate clockwise). Can East and South catch it, i.e., force North to take one or more tricks? If so, how many under optimal play by North? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10). Our solver will output the following:
-```
-Welcome to Preferans solver! Use S, C, D, H for spades, clubs, diamonds, and hearts, respectively.
-Enter cards for hand #1 (format SUIT:KIND) separated by the space key: H:9 H:8 D:9 D:8 D:7 C:8 S:10 S:9 S:8 S:7
-Enter cards for hand #2 (format SUIT:KIND) separated by the space key: S:K S:A C:10 C:J C:Q D:A H:10 H:Q H:K H:A
-Enter cards for hand #3 (format SUIT:KIND) separated by the space key: S:J S:Q C:7 C:9 D:10 D:J D:Q D:K H:7 H:J
-Indicate the game type (P for play or M for misere): M
-Indicate the playing hand (1, 2, or 3): 1
-Indicate the short hand (1, 2, or 3): 3
-Copy that! Wait while the problem is being solved; this may take a few minutes...
------------------------- BEGIN SOLUTION ------------------------
-[Game: MISERE]. Player 3 to start; major suit -.
-Hand #1 [PLAY] H:9 H:8 D:9 D:8 D:7 C:8 S:10 S:9 S:8 S:7 (1)
-Hand #2 [PASS] H:A H:K H:Q H:10 D:A C:Q C:J C:10 S:A S:K (3)
-Hand #3 [PASS] H:J H:7 D:K D:Q D:J D:10 C:9 C:7 S:Q S:J (6)
-[01] [3 D:10][1 D:7 ][2 D:A ] -> [0, 1, 0]
-[02] [2 H:10][3 H:J ][1 H:8 ] -> [0, 1, 1]
-[03] [3 D:J ][1 D:8 ][2 S:K ] -> [0, 1, 2]
-[04] [3 D:Q ][1 D:9 ][2 S:A ] -> [0, 1, 3]
-[05] [3 D:K ][1 S:7 ][2 H:Q ] -> [0, 1, 4]
-[06] [3 S:J ][1 S:8 ][2 H:K ] -> [0, 1, 5]
-[07] [3 S:Q ][1 S:9 ][2 H:A ] -> [0, 1, 6]
-[08] [3 H:7 ][1 H:9 ][2 C:10] -> [1, 1, 6]
-[09] [1 C:8 ][2 C:J ][3 C:9 ] -> [1, 2, 6]
-[10] [2 C:Q ][3 C:7 ][1 S:10] -> [1, 3, 6]
-Processed 20,236 subgames in 0 minute(s) 0 second(s).
-------------------------- END SOLUTION -------------------------
-```
-The misere is caught! The best outcome for the North is to concede 1 trick.
+North is playing misere; South is to start (turns alternate clockwise). Can East and South catch it, i.e., force North to take one or more tricks? If so, how many under optimal play by North? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10).
+
+<p align="center">
+  <img src="examples/phase_setup.png" width="400" />
+  <img src="examples/phase_play.png" width="400" />
+</p>
 
 ## Limitations
 
 While the solver tracks down optimal moves and prints them as part of the output, it can be difficult to undersatnd the logic behind them. In the above example, North plays spades in rounds 5,6 and 7, which may seem unreasonable at first, especially before we know that the misere is doomed. Hence, the solver provides only limited explanation for its projections. Further, the solver cannot apply to all real games because it requires knowing all cards in all hands.
-
-## GUI-solver
-
-The GUI-solver provides a visual interface for the ```solver.py``` file. To start the application, run ```python frontend.py``` from the ```solver-gui``` directory and follow instructions. 
-
-<p align="center">
-  <img src="examples/deal.png" width="400" />
-  <img src="examples/contract.png" width="400" />
-  <br/>
-  <em>Left: tap on cards to deal them to players (south, west, east); Right: Select contract type and other details and press OK.</em>
-</p>
-
-You will first be asked to deal out 30 cards to players and select the contract type. Once you press OK, the solver will start computing the solution (may take up to a few minutes). Press START to begin the play.
-
-<p align="center">
-  <img src="examples/play.png" width="400" />
-  <br/>
-  <em>Guided play: optimal cards highlighted in pink.</em>
-</p>
-
-There are three types of cards: inactive (grey), active non-optimal (white), and active optimal (pink). A card is inactive if you cannot use it in the current turn; otherwise it is active. Among these, white are non-optimal cards, i.e., using one of these will hurt the objective of the player in turn. For example, if EAST uses 7&hearts; in this turn (see picture above), then SOUTH will not take any tricks under optimal play. Finally, using any of the optimal cards (pink) is consistent with current projections and is considered optimal play.
-
-Note the trick information by each players' hands. The first number specifies the number of tricks already taken by this player. The second number is the projected number of tricks to be taken by this player provided optimal play on all hands.
-
-Future versions of ```gui-solver``` will feature game rewinding and undoing. The colors of inactive/optimal cards will be fixed, too.
 
