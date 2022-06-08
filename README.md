@@ -26,7 +26,7 @@ To run the graphical application, input these commands; the application window w
 
 ```
 cd solver-gui
-python3 forntend.py
+python3 frontend.py
 ```
 
 ## Introduction
