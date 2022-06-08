@@ -3,10 +3,9 @@
 ## Quick setup
 To clone this repo to your local machine, type this command from your preferred directory:
 ```
-git clone 
+git clone https://github.com/avysogorets/preferans-solver.git
 ```
-
-Follow these steps in your terminal window to set up virtual environment:
+Then, follow these steps in your terminal window to set up virtual environment:
 #### MacOS & Linux
 ```
 python3 -m pip install --user --upgrade pip # install pip
@@ -16,7 +15,6 @@ python3 -m pip install -r requirements.txt # install packages
 source env/bin/activate # activate the environment
 ```
 #### Windows
-
 ```
 py -m pip install --upgrade pip 
 py -m pip install --user virtualenv
@@ -25,7 +23,6 @@ py -m pip install -r requirements.txt
 .\env\Scripts\activate
 ```
 To run the graphical application, input these commands; the application window should open:
-
 ```
 cd solver-gui
 python3 frontend.py
