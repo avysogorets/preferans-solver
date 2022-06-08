@@ -1,6 +1,11 @@
 # Preferans (преферанс) solver.
 
 ## Quick setup
+To clone this repo to your local machine, type this command from your preferred directory:
+```
+git clone 
+```
+
 Follow these steps in your terminal window to set up virtual environment:
 #### MacOS & Linux
 ```
