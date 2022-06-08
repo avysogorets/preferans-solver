@@ -43,19 +43,15 @@ The backend algorithm uses depth-first-search with memoization to efficiently pr
 
 ## Example: Kovalevskaya's misere
 
-For a quick demonstration, consider a well-known example&mdash;Kovalevskaya's misere. The deal is as follows:
-- North: 7&spades; 8&spades; 9&spades; 10&spades; 7&diams; 8&diams; 9&diams; 8&clubs; 8&hearts; 9&hearts;
-- East: K&spades; A&spades; A&diams; 10&clubs; J&clubs; Q&clubs; 10&hearts; Q&hearts; K&hearts; A&hearts; 
-- South: J&spades; Q&spades; 10&diams; J&diams; Q&diams; K&diams; 7&clubs; 9&clubs; 7&hearts; J&hearts;
-
-North is playing misere; South is to start (turns alternate clockwise). Can East and South catch it, i.e., force North to take one or more tricks? If so, how many under optimal play by North? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10).
+For a quick demonstration, consider a well-known example&mdash;Kovalevskaya's misere. South is playing misere; East is to start (turns alternate clockwise). Can West and East force South to take one or more tricks? If so, how many under optimal play by all? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10).
 
 <p align="center">
   <img src="examples/phase_setup.png" width="400" />
   <img src="examples/phase_play.png" width="400" />
 </p>
 
+The number of projected tricks conceded by South is 1 as can be seen on the right screenshot.
+
 ## Limitations
 
-While the solver tracks down optimal moves and prints them as part of the output, it can be difficult to undersatnd the logic behind them. In the above example, North plays spades in rounds 5,6 and 7, which may seem unreasonable at first, especially before we know that the misere is doomed. Hence, the solver provides only limited explanation for its projections. Further, the solver cannot apply to all real games because it requires knowing all cards in all hands.
-
+While the solver tracks down all optimal moves, it can be difficult to undersatnd the logic behind them. In Kovalevskaya's misere, it is optimal for South to play spades in rounds 5,6 and 7, which may seem unreasonable at first, especially before we know that it is possible to force South to take at least one trick. Hence, the solver provides only limited explanation for its projections. Further, the solver cannot apply to all real games because it requires knowing all cards in all hands.
