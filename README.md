@@ -46,7 +46,7 @@ The backend algorithm uses depth-first-search with memoization to efficiently pr
 For a quick demonstration, consider a well-known example&mdash;Kovalevskaya's misere. South is playing misere; East is to start (turns alternate clockwise). Can West and East force South to take one or more tricks? If so, how many under optimal play by all? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10).
 
 <p align="center">
-  <img src="examples/phase_setup.png" width="400" />
+  <img src="examples/phase_setup.png" width="400" />               
   <img src="examples/phase_play.png" width="400" />
 </p>
 
