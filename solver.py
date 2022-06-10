@@ -16,42 +16,29 @@ for suit in SUITS_TO_CODE.keys():
     for kind in KINDS_TO_CODE.keys():
         CARDS[(suit,kind)]=Card(suit,kind)
 
-def settle_trick(cards,major_suit):
-    if cards[0].suit==major_suit:
-        if cards[1].suit!=major_suit and cards[2].suit!=major_suit:
-            return 0
-        if cards[1].suit!=major_suit and cards[2].suit==major_suit:
-            return 0 if cards[0].kind>cards[2].kind else 2
-        if cards[1].suit==major_suit and cards[2].suit!=major_suit:
-            return 0 if cards[0].kind>cards[1].kind else 1
-        if cards[1].suit==major_suit and cards[2].suit==major_suit:
-            if cards[0].kind>cards[1].kind and cards[0].kind>cards[2].kind:
+def settle_trick(cards,trumps):
+    if cards[0].suit==trumps:
+        if cards[1].suit==trumps:
+            if cards[2].suit==trumps:
+                return max([0,1,2],key=lambda i: cards[i])
+            else:
+                return max([0,1],key=lambda i: cards[i])
+        else:
+            if cards[2].suit==trumps:
+                return max([0,2],key=lambda i: cards[i])
+            else:
                 return 0
-            if cards[1].kind>cards[0].kind and cards[1].kind>cards[2].kind:
+    else:
+        if cards[1].suit==trumps:
+            if cards[2].suit==trumps:
+                return max([1,2],key=lambda i: cards[i])
+            else:
                 return 1
-            if cards[2].kind>cards[0].kind and cards[2].kind>cards[1].kind:
+        else:
+            if cards[2].suit==trumps:
                 return 2
-    if cards[0].suit!=major_suit:
-        if cards[1].suit==major_suit and cards[2].suit==major_suit:
-            return 1 if cards[1].kind>cards[2].kind else 2
-        if cards[1].suit==major_suit and cards[2].suit!=major_suit:
-            return 1
-        if cards[1].suit!=major_suit and cards[2].suit==major_suit:
-            return 2
-        if cards[1].suit!=major_suit and cards[2].suit!=major_suit:
-            if cards[1].suit==cards[0].suit and cards[2].suit==cards[0].suit:
-                if cards[0].kind>cards[1].kind and cards[0].kind>cards[2].kind:
-                    return 0
-                if cards[1].kind>cards[0].kind and cards[1].kind>cards[2].kind:
-                    return 1
-                if cards[2].kind>cards[0].kind and cards[2].kind>cards[1].kind:
-                    return 2
-            if cards[1].suit==cards[0].suit and cards[2].suit!=cards[0].suit:
-                return 0 if cards[0].kind>cards[1].kind else 1
-            if cards[1].suit!=cards[0].suit and cards[2].suit==cards[0].suit:
-                return 0 if cards[0].kind>cards[2].kind else 2
-            if cards[1].suit!=cards[0].suit and cards[2].suit!=cards[0].suit:
-                return 0
+            else:
+                return settle_trick(cards,cards[0].suit)
 
 def play(hands,turn):
     running_outcome=[0,0,0]
