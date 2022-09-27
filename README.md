@@ -22,10 +22,9 @@ py -m venv env
 py -m pip install -r requirements.txt
 .\env\Scripts\activate
 ```
-To run the graphical application, input these commands; the application window should open:
+To run the graphical application:
 ```
-cd solver-gui
-python3 frontend.py
+python3 -m main
 ```
 
 ## Introduction
