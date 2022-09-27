@@ -8,10 +8,10 @@ git clone https://github.com/avysogorets/preferans-solver.git
 Then, follow these steps in your terminal window to set up virtual environment:
 #### MacOS & Linux
 ```
-python3 -m pip install --user --upgrade pip # install pip
-python3 -m pip install --user virtualenv # install environment manager
-python3 -m venv env # create a new environment
-python3 -m pip install -r requirements.txt # install packages
+python -m pip install --user --upgrade pip # install pip
+python -m pip install --user virtualenv # install environment manager
+python -m venv env # create a new environment
+python -m pip install -r requirements.txt # install packages
 source env/bin/activate # activate the environment
 ```
 #### Windows
@@ -24,7 +24,7 @@ py -m pip install -r requirements.txt
 ```
 To run the graphical application:
 ```
-python3 -m main
+python -m main
 ```
 
 ## Introduction
