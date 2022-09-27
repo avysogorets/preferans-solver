@@ -1,0 +1,2 @@
+tkmacosx==1.0.4
+pillow==8.2.0
