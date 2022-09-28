@@ -40,7 +40,7 @@ This program computes the outcome of any given deal (the number of tricks taken 
 
 ## Implementation
 
-The backend algorithm uses depth-first-search with memoization to efficiently process the graph of all game evolution possibilities (game states or *subgames*). Clearly, the number of nodes in this graph differs from deal to deal, however, on average, it is in order of 10K&ndash;100K. This is reduced by roughly a factor of 10 by saving recursive calls on consecutive cards; e.g., it is unnecessary to consider both A&diams; and K&diams;&mdash; for a single move&mdash;the outcomes will be identical. In general, the algorithm takes anywhere from a few seconds to a few minutes to finish. The GUI is written using ```tkinter```.
+The backend algorithm uses depth-first-search with memoization to efficiently process the graph of all game evolution possibilities (game states or *subgames*). Clearly, the number of nodes in this graph differs from deal to deal, however, on average, it is in order of 10K&ndash;100K. In the latest release, we use a compact suit-based subgame representation that reduced the number of subgames to process by roughly 10 times, increasing the DFS hit rate from 0% to ~45%. 
 
 ## Example: Kovalevskaya's misere
 
