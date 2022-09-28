@@ -40,11 +40,11 @@ This program computes the outcome of any given deal (the number of tricks taken 
 
 ## Implementation
 
-The backend algorithm uses depth-first-search with memoization to efficiently process the graph of all game evolution possibilities (game states or *subgames*). Clearly, the number of nodes in this graph differs from deal to deal, however, on average, it is in order of 10K&ndash;100K. In the latest release, we use a compact suit-based subgame representation that reduced the number of subgames to process by roughly 10 times, increasing the DFS hit rate from 0% to ~45%. 
+The backend algorithm uses depth-first-search with memoization to efficiently process the graph of all game evolution possibilities (game states or *subgames*). Clearly, the number of nodes in this graph differs from deal to deal, however, on average, it is in order of 10K&ndash;100K. In the latest release, we use a compact suit-based subgame representation that reduced the number of subgames to process by ~10 times, increasing the DFS hit rate from 0% to ~45%. 
 
 ## Example: Kovalevskaya's misere
 
-For a quick demonstration, consider a well-known example&mdash;Kovalevskaya's misere. South is playing misere; East is to start (turns alternate clockwise). Can West and East force South to take one or more tricks? If so, how many under optimal play by all? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10).
+For a quick demonstration, consider a well-known example&mdash;Kovalevskaya's misere. South is playing misere, East is the short hand (turns alternate clockwise). Can West and East force South to take one or more tricks? If so, how many under optimal play by all? The solution (in Russian) can be found [here](https://zen.yandex.ru/media/id/5b9e12e5b76d9000aa070845/reshenie-zadachi-s-mizerom-kovalevskoi-60cf77a8bb96047128248c10).
 
 <p align="center">
   <img src="examples/phase_setup.png" width="400" />               
