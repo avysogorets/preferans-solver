@@ -10,14 +10,15 @@ class Solver(object):
         self.dp = {}
         self.game = game
         game.initialize()
+        self.solved=False
 
     def solve(self):
         start_time=time.time()
         self._solve(self.game.to_string())
         end_time=time.time()
-        solution_stats={'time':end_time-start_time,
+        self.solution_stats={'time':end_time-start_time,
                         'subgames':len(self.dp)}
-        return solution_stats
+        self.solved=True
 
     def _solve(self,game_string):
         if len(game_string)<=9:

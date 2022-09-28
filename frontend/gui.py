@@ -9,7 +9,9 @@ from PIL import Image,ImageTk
 from functools import partial
 import numpy as np
 import os
-    
+import time
+from threading import Thread
+
 
 class GUI:
     def __init__(self,root):
@@ -158,12 +160,20 @@ class GUI:
                 if self.games[self.current_game].params['type']=='M':
                     self.games[self.current_game].params['trumps']='-'
         elif self.phase=='solve':
+            self.text_visited_variable=tk.StringVar()
             self.draw()
             self.root.update()
             self.games[self.current_game].initialize()
-            solver = Solver(self.games[self.current_game])
-            self.solution_stats=solver.solve()
+            solver=Solver(self.games[self.current_game])
+            solving_thread=Thread(target=solver.solve)
+            solving_thread.start()
+            start_time=time.time()
+            while not solver.solved:
+                time.sleep(0.005)
+                self.text_visited_variable.set(f'SUBGAMES SOLVED: {len(solver.dp):,}; TIME: {time.time()-start_time:.1f} SEC')
+                self.root.update()
             self.solution=solver.dp
+            self.solution_stats=solver.solution_stats
         elif self.phase=='play':
             if 'card' in kwargs:
                 self.games=self.games[:self.current_game+1]
@@ -187,8 +197,6 @@ class GUI:
                         virtual_game.initialize()
                         virtual_game.hands[TRICK].auto_flush=True
                         virtual_new_tricks=virtual_game.play_card(card)
-                        #if len(virtual_game.hands[TRICK].cards)==3:
-                        #    virtual_new_tricks=virtual_game.flush()
                         solution=self.solution[virtual_game.to_string()]
                         potential_tricks=[solution[virtual_game.players[SOUTH]],
                                         solution[virtual_game.players[WEST]],
@@ -312,10 +320,10 @@ class GUI:
         elif self.phase=='solve':
             self.draw_players()
             if self.solution is None:
-                Label(self.root,text="SOLUTION IN PROGRESS...",bg=BACKGROUND_COLOR,fg='white').place(relx=0.5,rely=0.15,anchor='center')
+                Label(self.root,textvariable=self.text_visited_variable,bg=BACKGROUND_COLOR,fg='white').place(relx=0.5,rely=0.15,anchor='center')
             else:
-                Label(self.root,text=f'SOLVED {self.solution_stats["subgames"]:,} SUBGAMES IN {self.solution_stats["time"]:.1f} SEC',bg=BACKGROUND_COLOR,fg='white').place(relx=0.5,rely=0.15,anchor='center')
-                Button(self.root,text='START',bg='white',fg=BACKGROUND_COLOR,command=self.transition_phase).place(relx=0.5,rely=0.24,anchor='center')
+                Label(self.root,text=f'SUBGAMES SOLVED: {self.solution_stats["subgames"]:,}; TIME: {self.solution_stats["time"]:.1f} SEC',bg=BACKGROUND_COLOR,fg='white').place(relx=0.5,rely=0.15,anchor='center')
+                Button(self.root,text='START',bg='white',fg=BACKGROUND_COLOR,command=self.transition_phase).place(relx=0.5,rely=0.21,anchor='center')
         elif self.phase=='play':
             self.draw_players()
             frame=tk.Frame(self.root,bg=BACKGROUND_COLOR,highlightbackground='white',highlightthickness=BORDER_THICKNESS,height=CARD_Y_SIZE+2*BORDER_THICKNESS,width=CARD_X_SIZE+2*BORDER_THICKNESS)
@@ -371,7 +379,7 @@ class GUI:
             frame=tk.Frame(self.root,bg=BACKGROUND_COLOR,height=Y_SIZE//2,width=X_SIZE//2)
             frame.place(relx=0.5,rely=0.5,anchor='center')
             container=Label(frame,bg=BACKGROUND_COLOR)
-            container.place(x=0,y=0,height=Y_SIZE//1.9,width=X_SIZE//1.9)
+            container.place(x=0,y=0,height=Y_SIZE//1.95,width=X_SIZE//1.95)
             container.grid_propagate(0)
             container.grid_columnconfigure(0,weight=2,uniform='_')
             for col in range(1,4):
@@ -384,7 +392,6 @@ class GUI:
             Label(container,text=f"{self.games[-1].past_tricks[SOUTH]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==SOUTH else 'white').grid(row=1,column=1,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
             Label(container,text=f"{self.games[-1].past_tricks[WEST]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==WEST else 'white').grid(row=1,column=2,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
             Label(container,text=f"{self.games[-1].past_tricks[EAST]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==EAST else 'white').grid(row=1,column=3,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
-            Label(container,text=f"{self.solution[self.games[0].to_string()][self.players[SOUTH]]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==SOUTH else 'white').grid(row=2,column=1,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
-            Label(container,text=f"{self.solution[self.games[0].to_string()][self.players[WEST]]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==WEST else 'white').grid(row=2,column=2,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
-            Label(container,text=f"{self.solution[self.games[0].to_string()][self.players[EAST]]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==EAST else 'white').grid(row=2,column=3,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
-            Button(self.root,text='QUIT',bg='white',fg=BACKGROUND_COLOR,command=self.quit).place(relx=0.5,rely=0.7,anchor='center')  
+            Label(container,text=f"{self.solution[self.games[0].to_string()][self.games[0].players[SOUTH]]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==SOUTH else 'white').grid(row=2,column=1,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
+            Label(container,text=f"{self.solution[self.games[0].to_string()][self.games[0].players[WEST]]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==WEST else 'white').grid(row=2,column=2,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
+            Label(container,text=f"{self.solution[self.games[0].to_string()][self.games[0].players[EAST]]}",font=tkf.Font(family="Garamond",size=2*MESSAGE_FONT),bg=BACKGROUND_COLOR,fg='#78b1e8' if self.games[0].params['player']==EAST else 'white').grid(row=2,column=3,sticky=tk.NSEW,pady=MESSAGE_FONT//3)
