@@ -58,7 +58,6 @@ class Game(object):
         num_tricks[winner]+=1
         self.params['turn']=winner
         self.hands[TRICK].cards=[]
-        self.hands[TRICK].cards=[]
         return num_tricks
 
     def to_string(self):
