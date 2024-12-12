@@ -1,6 +1,6 @@
 # Preferans (преферанс) solver.
 
-*Update*: a web app is now available at https://artem.vysogorets/blog/preferans/solver.html
+*Update*: a web app is now available at https://artem.vysogorets.org/blog/preferans/solver.html
 ---
 
 ## Quick setup
