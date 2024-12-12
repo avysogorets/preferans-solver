@@ -1,5 +1,8 @@
 # Preferans (преферанс) solver.
 
+*Update*: a web app is now available at https://artem.vysogorets/blog/preferans/solver.html
+---
+
 ## Quick setup
 To clone this repo to your local machine, type this command from your preferred directory:
 ```
